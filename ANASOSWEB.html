@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06111f">
+<title>ANAS OS WEB v1018 — Zenith Nexus & Watchful Swarm</title>
+<style>
+:root{--bg:#030712;--panel:#07111fff;--panel2:#0b1728;--line:#15304a;--cyan:#22d3ee;--blue:#38bdf8;--purple:#a78bfa;--green:#34d399;--red:#fb4b5f;--pink:#f472b6;--gold:#facc15;--text:#e5f3ff;--muted:#7f9ab2;--shadow:0 12px 40px #0008}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:radial-gradient(circle at 70% 10%,#0c2740 0,#030712 42%,#010409 100%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
+button,input,select,textarea{font:inherit}button{cursor:pointer;color:var(--text);background:#0a1625;border:1px solid var(--line);border-radius:8px;padding:9px 12px}button:hover{border-color:var(--cyan);box-shadow:0 0 16px #22d3ee22}.danger{border-color:#6d1e2a;color:#ff9aa7}.success{border-color:#17634c;color:#8ff3c8}.primary{background:#083448;border-color:#147c95}
+
+#loginScreen{position:fixed;inset:0;z-index:9998;background:radial-gradient(circle at center,#081b2e 0,#02060f 100%);display:grid;place-items:center}
+.loginbox{width:min(440px,90vw);background:#06101cee;border:1px solid var(--cyan);border-radius:16px;padding:30px;box-shadow:0 20px 60px #000c;text-align:center}
+.loginbox h1{color:var(--cyan);letter-spacing:4px;margin-bottom:6px}.loginbox p{color:var(--muted);font-size:12px;margin-bottom:20px}
+
+#boot{position:fixed;inset:0;z-index:9999;background:#01050b;display:none;place-items:center}.bootbox{width:min(720px,90vw);font-family:ui-monospace,Consolas,monospace}.bootlogo{font-size:clamp(30px,7vw,74px);font-weight:900;letter-spacing:8px;color:var(--cyan);text-shadow:0 0 30px #22d3ee66}.bootline{color:#8aa4ba;margin-top:18px}.bar{height:5px;background:#102033;margin-top:20px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--cyan);animation:load 1.2s forwards}@keyframes load{to{width:100%}}
+
+#app{height:calc(100% - 48px);display:grid;grid-template-columns:235px 1fr;grid-template-rows:58px 1fr;transition:grid-template-columns 0.25s ease}
+#app.sidebar-hidden{grid-template-columns:0px 1fr}
+
+header{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#050d18dd;border-bottom:1px solid var(--line);backdrop-filter:blur(18px);z-index:20}
+.brand{display:flex;gap:10px;align-items:center;font-weight:900;letter-spacing:2px}.dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}.status{font-size:11px;color:var(--green)}.top{display:flex;gap:8px;align-items:center}
+
+aside{background:#040b14e8;border-right:1px solid var(--line);padding:12px;overflow:auto;transition:all 0.25s ease}
+#app.sidebar-hidden aside{opacity:0;pointer-events:none;padding:0;border:none}
+
+.section{font-size:10px;color:#55728a;letter-spacing:2px;margin:14px 8px 7px}
+.nav{display:flex;width:100%;text-align:left;gap:10px;margin:3px 0;padding:10px;white-space:nowrap;overflow:hidden}
+.nav.active{background:#082333;border-color:#126079;color:#8defff;box-shadow:inset 3px 0 var(--cyan)}
+
+main{overflow:auto;padding:18px}
+.view{display:none;animation:fade .18s}.view.active{display:block}@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* OS Taskbar */
+#taskbar{position:fixed;bottom:0;left:0;right:0;height:48px;background:#030812f2;border-top:1px solid var(--line);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:space-between;padding:0 12px;z-index:9000}
+.tb-left,.tb-right{display:flex;gap:8px;align-items:center}
+.start-btn{background:linear-gradient(135deg,#0e344e,#081b2a);border:1px solid var(--cyan);color:var(--cyan);font-weight:800;border-radius:6px;padding:6px 14px}
+.tb-item{background:#07121f;border:1px solid var(--line);border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer}
+.tb-item:hover{border-color:var(--cyan)}
+.start-menu{position:fixed;bottom:54px;left:8px;width:320px;background:#06101ce8;border:1px solid var(--cyan);border-radius:12px;padding:12px;box-shadow:0 10px 40px #000;display:none;z-index:9500;backdrop-filter:blur(20px)}
+
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.card{background:linear-gradient(145deg,#081525ee,#040a13ee);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)}
+.title{font-size:22px;font-weight:900;margin:0 0 4px}.sub{color:var(--muted);font-size:12px}
+.panelhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #10243a;padding-bottom:10px;margin-bottom:12px}
+.stat{font-size:27px;font-weight:900}.label{font-size:10px;color:var(--muted);letter-spacing:1.4px}
+.meter{height:8px;background:#101d2c;border-radius:20px;overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:70%}
+.hero-card{position:relative;overflow:hidden;min-height:165px}
+.hero-card:after{content:"";position:absolute;inset:auto -30px -60px auto;width:160px;height:160px;border-radius:50%;background:var(--accent);opacity:.09;filter:blur(25px)}
+.hero-name{font-size:18px;font-weight:900}
+.tag{display:inline-block;font-size:9px;border:1px solid currentColor;border-radius:99px;padding:3px 7px;margin-top:7px}
+.list{display:grid;gap:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#06101c;border:1px solid #10263c;border-radius:9px;padding:10px}
+.muted{color:var(--muted)}.small{font-size:11px}.bigbtn{padding:13px 15px;font-weight:800}
+.sim{font-size:9px;letter-spacing:1.5px;color:#fbbf24;border:1px solid #735b12;padding:3px 6px;border-radius:99px}
+
+/* Radar & Map */
+.radar-map-wrapper{display:grid;grid-template-columns:1fr 340px;gap:12px;height:calc(100vh - 180px);max-height:580px}
+.radar-view-box{position:relative;background:radial-gradient(circle,#05152b,#01040a 80%);border:1px solid var(--cyan);border-radius:14px;overflow:hidden;display:grid;place-items:center;box-shadow:0 0 35px #22d3ee15;min-height:480px}
+.radar-grid-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.radar-ring{position:absolute;border:1px dashed #22d3ee44;border-radius:50%;pointer-events:none}
+.r1{width:160px;height:160px}.r2{width:300px;height:300px}.r3{width:440px;height:440px}
+.radar-sweep-blade{position:absolute;width:220px;height:220px;border-radius:100% 0 0 0;background:linear-gradient(135deg,#22d3ee55,transparent);transform-origin:100% 100%;animation:radarSpin 4s linear infinite;pointer-events:none}
+@keyframes radarSpin{to{transform:rotate(360deg)}}
+.map-node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform 0.2s;z-index:10}
+.map-node:hover{transform:translate(-50%,-50%) scale(1.25)}
+.node-dot{width:16px;height:16px;border-radius:50%;box-shadow:0 0 16px currentColor;animation:pulseBlip 2s infinite}
+.node-label{font-size:10px;font-weight:700;color:var(--text);background:#030812cc;padding:2px 6px;border-radius:4px;margin-top:4px;white-space:nowrap;border:1px solid var(--line)}
+@keyframes pulseBlip{0%{transform:scale(0.8);opacity:0.7}50%{transform:scale(1.5);opacity:1}100%{transform:scale(0.8);opacity:0.7}}
+
+/* Messenger */
+.chat-window{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 180px);max-height:560px;background:#030812;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.chat-sidebar{background:#050d18;border-right:1px solid var(--line);padding:10px;overflow:auto}
+.chat-main{display:flex;flex-direction:column;height:100%;justify-content:space-between;padding:12px;overflow:hidden}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:6px;margin-bottom:10px}
+.msg{padding:10px 14px;border-radius:10px;max-width:80%;font-size:12px;line-height:1.5}
+.msg.in{background:#0a1828;border:1px solid #15324e}
+.msg.out{background:#08333b;border:1px solid #13748c;align-self:flex-end}
+
+/* AI Core */
+.ai-core-container{display:flex;flex-direction:column;height:calc(100vh - 190px);max-height:580px;background:#040c18;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ai-messages{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.ai-msg{display:flex;gap:12px;max-width:85%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6}
+.ai-msg.user{background:#0a2538;border:1px solid #14506f;align-self:flex-end;border-bottom-right-radius:2px}
+.ai-msg.assistant{background:#071222;border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:2px;box-shadow:0 4px 20px #0004}
+.ai-avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.ai-suggestions{display:flex;gap:8px;padding:8px 16px;overflow-x:auto;background:#030812;border-top:1px solid #10243a}
+.ai-suggestion-chip{background:#081d2e;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:11px;white-space:nowrap;cursor:pointer;color:var(--cyan)}
+.ai-suggestion-chip:hover{border-color:var(--cyan);background:#0c2b42}
+
+.hud{background:#02060b;border:1px solid #17354d;border-radius:12px;padding:14px;min-height:530px;position:relative;overflow:hidden}
+.zord{min-height:205px}.zord .machine{height:90px;border-radius:10px;margin-bottom:10px;background:radial-gradient(circle,#2dd4bf22,#06111f 65%);border:1px solid #1d5260;display:grid;place-items:center;font-size:36px}
+.suit{min-height:210px}.suit .armor{height:95px;border-radius:12px;margin-bottom:10px;display:grid;place-items:center;font-size:38px;background:linear-gradient(135deg,#101827,#07101d);border:1px solid #2a4561}
+
+/* Lockdown Full Screen Overlay */
+#lockdownOverlay{position:fixed;inset:0;z-index:9999;background:rgba(15,2,4,0.96);display:none;place-items:center;backdrop-filter:blur(10px);border:4px solid var(--red)}
+.lockdown-box{width:min(580px,92vw);background:#0b0204;border:2px solid var(--red);border-radius:12px;padding:24px;text-align:center;box-shadow:0 0 60px #fb4b5f88}
+
+input,select,textarea{width:100%;background:#030a12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+.toast{position:fixed;right:18px;bottom:64px;z-index:9999;background:#071521ee;border:1px solid var(--cyan);padding:12px 16px;border-radius:9px;box-shadow:0 0 30px #000;display:none}.toast.show{display:block;animation:fade .2s}
+.modal{position:fixed;inset:0;background:#0009;z-index:9700;display:none;place-items:center;padding:20px}.modal.show{display:grid}
+.modalbox{width:min(940px,96vw);max-height:90vh;overflow:auto;background:#06101c;border:1px solid #24506b;border-radius:14px;box-shadow:0 30px 100px #000}
+.modalhead{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modalbody{padding:16px}
+@media(max-width:900px){#app{grid-template-columns:70px 1fr}aside .txt,aside .section{display:none}.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATEWAY -->
+<div id="loginScreen">
+  <div class="loginbox">
+    <h1>ANAS OS</h1>
+    <p>MULTIVERSAL HERO COMMAND GATEWAY</p>
+    <label class="small muted" style="display:block;text-align:left;margin-bottom:4px">SELECT OPERATOR:</label>
+    <select id="heroSelect" style="margin-bottom:12px" onchange="fillHeroCredentials()">
+      <option value="anas">Anas Alroz (Crimson Wing)</option>
+      <option value="mohamad">Mohamad Albadri (Blue Vortex)</option>
+      <option value="emad">Emad Albadri (Flame Phantom)</option>
+      <option value="leen">Leen (Striking Pink)</option>
+      <option value="abdulla">Abdulla (Smashing One)</option>
+      <option value="rydar">Rydar (Shadow Sentinel)</option>
+      <option value="ziad">Ziad (Solar Blaze)</option>
+      <option value="hulk">Hulk (Gamma Titan)</option>
+    </select>
+    <input id="usernameInput" placeholder="Operator Name" value="Anas Alroz" style="margin-bottom:12px">
+    <input id="passInput" type="password" placeholder="Security Passcode" value="CrimsonWing2026!" style="margin-bottom:16px">
+    <button class="primary bigbtn" style="width:100%;margin-bottom:8px" onclick="handleLogin()">AUTHENTICATE & BOOT</button>
+  </div>
+</div>
+
+<!-- BOOT SCREEN -->
+<div id="boot"><div class="bootbox"><div class="bootlogo">ANAS OS</div><div class="bootline" id="bootline">INITIALIZING WINDOWS DESKTOP KERNEL v1018...</div><div class="bar"><i></i></div></div></div>
+
+<div id="app" style="display:none">
+<header>
+  <div class="brand">
+    <button onclick="toggleSidebar()" style="background:transparent;border:0;color:var(--cyan);font-size:16px;padding:4px 8px" title="Toggle Sidebar">📁</button>
+    <span class="dot"></span>
+    <span id="headerUser">ANAS OS</span>
+    <span class="muted">WEB v1018 // ZENITH NEXUS</span>
+  </div>
+  <div class="top">
+    <span class="status">● ONLINE</span>
+    <span id="clock" class="muted small"></span>
+    <button class="danger" style="padding:4px 10px;font-size:11px" onclick="triggerLockdown()">🚨 LOCKDOWN</button>
+    <button onclick="openHeroWindow()" class="primary">🦸 HERO HQ WINDOW</button>
+  </div>
+</header>
+
+<aside>
+<div class="section">CORE</div>
+<button class="nav active" onclick="show('home',this)">🏠 <span class="txt">Dashboard</span></button>
+<button class="nav" onclick="show('comms',this)">💬 <span class="txt">Team Comms & DMs</span></button>
+<button class="nav" onclick="show('terminal',this)">💻 <span class="txt">Terminal Pro</span></button>
+<button class="nav" onclick="show('ai',this)">🤖 <span class="txt">AI Core (Gemini 3.8)</span></button>
+<button class="nav" onclick="show('tasks',this)">📋 <span class="txt">Tasks</span></button>
+<button class="nav" onclick="show('calendar',this)">📅 <span class="txt">Calendar</span></button>
+<button class="nav" onclick="show('notes',this)">📝 <span class="txt">Notes</span></button>
+<div class="section">BUILD</div>
+<button class="nav" onclick="show('school',this)">🎓 <span class="txt">School</span></button>
+<button class="nav" onclick="show('projects',this)">🚀 <span class="txt">Projects</span></button>
+<button class="nav" onclick="show('dev',this)">🧑‍💻 <span class="txt">Developer</span></button>
+<button class="nav" onclick="show('creator',this)">🎨 <span class="txt">Creator</span></button>
+<button class="nav" onclick="show('podcast',this)">🎙️ <span class="txt">Podcast</span></button>
+<div class="section">COMMAND & UNIVERSE</div>
+<button class="nav" onclick="show('hero',this)">🦸 <span class="txt">Hero System</span></button>
+<button class="nav" onclick="show('combos',this)">⚡ <span class="txt">Squad Combos</span></button>
+<button class="nav" onclick="show('zords',this)">🤖 <span class="txt">Zord Fleet (60+)</span></button>
+<button class="nav" onclick="show('nexus',this)">🏢 <span class="txt">100-Floor Nexus & Elevator</span></button>
+<button class="nav" onclick="show('suits',this)">🛡️ <span class="txt">Suit Manager</span></button>
+<button class="nav" onclick="show('radar',this)">📡 <span class="txt">Radar & Multiverse Map</span></button>
+<button class="nav" onclick="show('fight',this)">⚔️ <span class="txt">Fight HUD + Swarm</span></button>
+<button class="nav" onclick="show('hq',this)">🏢 <span class="txt">HQ Control</span></button>
+<button class="nav" onclick="show('missions',this)">🎯 <span class="txt">Missions</span></button>
+<div class="section">SYSTEM</div>
+<button class="nav" onclick="show('plugins',this)">🧩 <span class="txt">Plugins</span></button>
+<button class="nav" onclick="show('devices',this)">📱 <span class="txt">Devices</span></button>
+<button class="nav" onclick="show('tools',this)">🌐 <span class="txt">Web Tools</span></button>
+<button class="nav" onclick="show('logs',this)">📜 <span class="txt">Activity</span></button>
+<button class="nav" onclick="show('settings',this)">⚙️ <span class="txt">Settings</span></button>
+</aside>
+
+<main>
+<!-- HOME -->
+<section id="home" class="view active">
+<div class="panelhead"><div><h1 class="title">ANAS MULTIVERSE FORCE // ZENITH NEXUS</h1><div class="sub">Windows Desktop Environment v1018 — Omega Classification ZN-01</div></div><button class="primary bigbtn" onclick="openHeroWindow()">🦸 Launch Hero HQ Window</button></div>
+<div class="grid g4">
+<div class="card"><div class="label">TASKS</div><div class="stat" id="statTasks">6</div><div class="sub">active</div></div>
+<div class="card"><div class="label">ZORDS FLEET</div><div class="stat">60+</div><div class="sub">operational</div></div>
+<div class="card"><div class="label">XP</div><div class="stat" id="xp">500</div><div class="sub">level <span id="level">5</span></div></div>
+<div class="card"><div class="label">NEXUS FLOORS</div><div class="stat">100</div><div class="sub">active</div></div>
+</div>
+<br>
+<div class="grid g2">
+<div class="card"><div class="panelhead"><b>SYSTEM STATUS</b><span class="success">ONLINE</span></div><div class="grid g2">
+<div><span class="label">CORES</span><div class="stat" style="font-size:20px" id="cores">--</div></div>
+<div><span class="label">SCREEN</span><div class="stat" style="font-size:20px" id="screen">--</div></div>
+<div><span class="label">NETWORK</span><div class="stat" style="font-size:20px" id="network">ONLINE</div></div>
+<div><span class="label">SECURITY</span><div class="stat" style="font-size:20px;color:var(--gold)">OMEGA LEVEL</div></div>
+</div></div>
+<div class="card"><div class="panelhead"><b>QUICK COMMANDS</b></div><div class="grid g2">
+<button onclick="show('comms')">💬 Team Comms</button><button onclick="show('nexus')">🏢 100-Floor Nexus</button><button onclick="show('zords')">🤖 60+ Zord Fleet</button><button onclick="show('fight')">⚔️ Fight HUD + Swarm</button><button onclick="show('hq')">🏢 HQ Control</button><button onclick="show('radar')">📡 Radar Map</button></div></div>
+</div><br>
+<div class="card"><div class="panelhead"><b>ACTIVITY FEED</b><span class="muted small">LIVE</span></div><div id="activity" class="list"></div></div>
+</section>
+
+<!-- TEAM COMMS & WHATSAPP DMs -->
+<section id="comms" class="view">
+<div class="panelhead">
+  <div><h1 class="title">💬 WHATSAPP-STYLE HERO DMs</h1><div class="sub">Squad General is shared; individual hero chats are separate and private</div></div>
+  <div class="top"><button class="primary" onclick="toggleVoiceOutput()">🔊 VOICE: <span id="voiceToggleState">ON</span></button></div>
+</div>
+<div class="chat-window">
+  <div class="chat-sidebar">
+    <div class="section" style="margin-top:0">CHANNELS</div>
+    <button class="nav active" onclick="switchChat('squad',this)">👥 Squad General <span style="font-size:9px;color:var(--cyan);display:block">[Shared Team]</span></button>
+    <div class="section">DIRECT CHATS</div>
+    <div id="dmSidebarList"></div>
+  </div>
+  <div class="chat-main">
+    <div class="panelhead"><b id="chatTitle">Squad General Chat</b><span class="muted small">Logged in as: <span id="currentOpBadge" style="color:var(--cyan)">Anas Alroz</span></span></div>
+    <div id="chatMsgs" class="chat-msgs"></div>
+    <form onsubmit="sendChatMessage(event)" class="row" style="margin-top:4px;background:transparent;border:0;padding:0">
+      <input id="chatMsgInput" placeholder="Type message..." autocomplete="off">
+      <button type="button" onclick="startVoiceRecognition()" style="background:#083448;border-color:var(--cyan)" title="Speech-to-Text Mic">🎙️ MIC</button>
+      <button class="primary" type="submit">SEND</button>
+    </form>
+  </div>
+</div>
+</section>
+
+<!-- TERMINAL PRO (REPL INTERPRETER) -->
+<section id="terminal" class="view">
+<div class="panelhead"><div><h1 class="title">TERMINAL PRO // LOCAL REPL INTERPRETER</h1><div class="sub">35+ COMMANDS ENABLED</div></div><span class="success">ONLINE</span></div>
+<div class="card" style="font-family:monospace">
+  <div id="termOut" style="min-height:300px;max-height:380px;overflow-y:auto;line-height:1.6;color:var(--cyan);font-size:12px;margin-bottom:12px">
+============================================================<br>
+ANAS OS v1018 CYBER COMMAND TERMINAL (REPL PRO)<br>
+All allowlisted routines active. Zero browser restrictions.<br>
+Type 'help' to inspect the comprehensive command directory.<br>
+============================================================<br>
+  </div>
+  <form onsubmit="handleTerm(event)" class="row" style="background:transparent;border:0;padding:0">
+    <span style="color:var(--cyan);font-weight:700">ANAS_OS►</span>
+    <input id="termInput" placeholder="Write command here... (try: help, hero anas, combo overdrive, scan, hack, lockdown)" autocomplete="off">
+    <button class="primary" type="submit">SUBMIT</button>
+  </form>
+</div>
+</section>
+
+<!-- RADAR & MULTIVERSE MAP -->
+<section id="radar" class="view">
+<div class="panelhead">
+  <div><h1 class="title">📡 RADAR & HOLOGRAPHIC MULTIVERSE MAP</h1><div class="sub">Interactive multi-node orbit viewer and tactical sector scanner</div></div>
+  <div class="top">
+    <button class="success" onclick="toggleRadarSweep()" id="sweepToggleBtn">🔄 SWEEP: ACTIVE</button>
+    <button class="primary" onclick="triggerRadarScanPulse()">📡 PING SECTOR</button>
+  </div>
+</div>
+<div class="radar-map-wrapper">
+  <div class="radar-view-box" id="radarContainer">
+    <svg class="radar-grid-svg">
+      <circle cx="50%" cy="50%" r="220" stroke="#22d3ee22" stroke-width="1" fill="none" stroke-dasharray="4 4"/>
+      <circle cx="50%" cy="50%" r="150" stroke="#22d3ee33" stroke-width="1" fill="none"/>
+      <circle cx="50%" cy="50%" r="80" stroke="#22d3ee44" stroke-width="1" fill="none" stroke-dasharray="2 2"/>
+      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#22d3ee22" stroke-width="1"/>
+      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#22d3ee22" stroke-width="1"/>
+    </svg>
+    <div class="radar-ring r1"></div>
+    <div class="radar-ring r2"></div>
+    <div class="radar-ring r3"></div>
+    <div class="radar-sweep-blade" id="radarScannerElem"></div>
+    
+    <div class="map-node" style="top:25%;left:35%" onclick="selectMapNode('Earth-616 // Prime Nexus', 'All systems green. Zero multiverse anomalies detected. Quantum core stability at 99.8%.', '37.4219° N, 122.0842° W', 'OMEGA-0 (SECURE)', 'var(--cyan)')">
+      <div class="node-dot" style="color:var(--cyan)"></div>
+      <div class="node-label">Earth-616 Prime</div>
+    </div>
+    
+    <div class="map-node" style="top:70%;left:75%" onclick="selectMapNode('Chronos Rift X', 'Dimensional anomaly detected! Quantum energy spikes rising rapidly across quadrant 9.', '12.8834° S, 45.1920° E', 'OMEGA-3 (ANOMALY)', 'var(--red)')">
+      <div class="node-dot" style="color:var(--red)"></div>
+      <div class="node-label">Chronos Rift X</div>
+    </div>
+    
+    <div class="map-node" style="top:20%;left:78%" onclick="selectMapNode('Citadel of Light', 'HQ Outpost secure. Relaying encrypted multiversal telemetry and shield status.', '51.5074° N, 0.1278° W', 'OMEGA-0 (SECURE)', 'var(--gold)')">
+      <div class="node-dot" style="color:var(--gold)"></div>
+      <div class="node-label">Citadel of Light</div>
+    </div>
+    
+    <div class="map-node" style="top:78%;left:25%" onclick="selectMapNode('Quantum Core Sanctum', 'Sub-atomic portal gate active. Energy output stable under Omega protocol.', '0.0000° N, 109.2001° W', 'OMEGA-1 (STABLE)', 'var(--purple)')">
+      <div class="node-dot" style="color:var(--purple)"></div>
+      <div class="node-label">Quantum Core</div>
+    </div>
+    
+    <div class="map-node" style="top:48%;left:85%" onclick="selectMapNode('Sector Vortex Outpost', 'Mohamad Albadri monitoring drone fleet and electric defense arrays.', '25.2048° N, 55.2708° E', 'OMEGA-0 (SECURE)', 'var(--green)')">
+      <div class="node-dot" style="color:var(--green)"></div>
+      <div class="node-label">Sector Vortex</div>
+    </div>
+
+    <div style="position:absolute;bottom:10px;left:14px" class="small muted">Holographic multi-node orbit viewer active</div>
+  </div>
+
+  <div class="card" style="display:flex;flex-direction:column;justify-content:space-between">
+    <div>
+      <div class="panelhead"><b id="nodeTitle">SECTOR TELEMETRY</b><span class="success" id="nodeStatusBadge">STABLE</span></div>
+      <p id="nodeDesc" class="muted small" style="line-height:1.6">Select a target node on the interactive map to view real-time tactical status, dimensional coordinates, and energy signatures.</p>
+      <br>
+      <div class="grid g2" style="margin-bottom:12px">
+        <div class="card" style="padding:10px"><span class="label">COORDINATES</span><b id="nodeCoords" style="font-size:11px;color:var(--cyan)">37.4219° N, 122.0842° W</b></div>
+        <div class="card" style="padding:10px"><span class="label">THREAT LEVEL</span><b id="nodeThreat" style="font-size:11px;color:var(--green)">OMEGA-0 (SECURE)</b></div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <button onclick="toggleRadarSweep()">🔄 TOGGLE SWEEP</button>
+      <button class="primary" onclick="notify('Target sector locked & secured under Zenith protocol')">🛡️ LOCK SECTOR</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- HERO SYSTEM & ROSTER (ALL 8 HEROES) -->
+<section id="hero" class="view">
+<div class="panelhead"><div><h1 class="title">HERO SYSTEM // 8 ACTIVE MULTIVERSE CHAMPIONS</h1><div class="sub">CLICK ANY HERO TO INSPECT ATTRIBUTES & WEAPON LOADOUTS</div></div><button class="primary" onclick="openHeroWindow()">OPEN SEPARATE HQ WINDOW</button></div>
+<div class="grid g4" id="heroInspectorBar" style="margin-bottom:12px"></div>
+<div class="grid g4" id="heroGrid" style="margin-bottom:14px"></div>
+
+<div class="grid g2">
+  <div class="card">
+    <div class="panelhead"><b id="inspectName">ANAS ALROZ</b><span id="inspectRole" style="color:var(--cyan)">TEAM LEADER</span></div>
+    <div style="color:var(--red);font-weight:700;margin-bottom:6px" id="inspectAlias">Crimson Wing / Phantom King</div>
+    <div class="small muted" style="margin-bottom:8px"><b>SECRET IDENTITY:</b> <span id="inspectId">Student & Tech, Code Architect</span></div>
+    <div class="small" style="margin-bottom:12px"><b>SIGNATURE STYLE:</b> <span id="inspectStyle">Masters fiery portal manipulation, infinite code-crafted energy weapons, shadow teleportation, and the Fire Whip & Crimson Chakram.</span></div>
+    <div class="panelhead" style="margin-bottom:8px"><b>CUSTOMIZE ACTIVE WEAPON LOADOUT:</b></div>
+    <div id="inspectWeapons" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div class="panelhead"><b>COMBAT ATTRIBUTES</b></div>
+    <div class="small">
+      Power <span style="float:right">99%</span>
+      <div class="meter" style="margin:4px 0 10px"><i style="width:99%;background:var(--red)"></i></div>
+      Speed <span style="float:right">100%</span>
+      <div class="meter" style="margin:4px 0 10px"><i style="width:100%;background:var(--red)"></i></div>
+      Tech <span style="float:right">100%</span>
+      <div class="meter" style="margin:4px 0 10px"><i style="width:100%;background:var(--red)"></i></div>
+      Defense <span style="float:right">94%</span>
+      <div class="meter" style="margin:4px 0 10px"><i style="width:94%;background:var(--red)"></i></div>
+      Mobility <span style="float:right">100%</span>
+      <div class="meter" style="margin:4px 0 10px"><i style="width:100%;background:var(--red)"></i></div>
+    </div>
+    <br>
+    <button class="primary" style="width:100%" onclick="playHeroAudio()">🔊 PLAY HERO IDENTIFICATION AUDIO</button>
+  </div>
+</div>
+</section>
+
+<!-- 100-FLOOR ZENITH NEXUS SPECIFICATION & ELEVATOR -->
+<section id="nexus" class="view">
+<div class="panelhead"><div><h1 class="title">🏢 ZENITH NEXUS // 100-FLOOR SPECIFICATION & ELEVATOR</h1><div class="sub">OMEGA SECURITY CLASSIFICATION // ZN-01 FACILITY</div></div><span class="success" id="elevatorStatusBadge">ELEVATOR AT FLOOR 01</span></div>
+<div class="grid g2" style="margin-bottom:12px">
+  <div class="card">
+    <div class="panelhead"><b>🛗 INTERACTIVE NEXUS ELEVATOR</b></div>
+    <p class="small muted">Select a target floor or type floor number to instantly take the high-speed quantum elevator:</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="elevatorTargetInput" type="number" min="1" max="100" placeholder="Floor # (1-100)">
+      <button class="primary" onclick="takeElevatorToFloorNum()">RIDE ELEVATOR 🛗</button>
+    </div>
+    <div class="grid g3" style="margin-bottom:12px">
+      <button onclick="takeElevatorTo(1)">Floor 01 (Lobby)</button>
+      <button onclick="takeElevatorTo(25)">Floor 25 (AI Lab)</button>
+      <button onclick="takeElevatorTo(50)">Floor 50 (Suits)</button>
+      <button onclick="takeElevatorTo(75)">Floor 75 (Megazords)</button>
+      <button onclick="takeElevatorTo(90)">Floor 89 (Space)</button>
+      <button onclick="takeElevatorTo(100)">Floor 100 (Core)</button>
+    </div>
+    <div class="card" style="padding:10px;background:#030812">
+      <div class="small muted">CURRENT ELEVATOR POSITION:</div>
+      <b id="currentElevatorFloorDisplay" style="color:var(--cyan);font-size:18px">Floor 01 — Zenith Arrival Terminal</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panelhead"><b id="nexusSectorTitle">SECTOR DIRECTORY</b><span class="sim">SECURE</span></div>
+    <select id="nexusSectorSelect" style="margin-bottom:10px" onchange="renderNexusFloors()">
+      <option value="A">Sector A (Floors 01-10)</option>
+      <option value="B">Sector B (Floors 11-20)</option>
+      <option value="C">Sector C (Floors 21-30)</option>
+      <option value="D">Sector D (Floors 31-40)</option>
+      <option value="E">Sector E (Floors 41-50)</option>
+      <option value="F">Sector F (Floors 51-60)</option>
+      <option value="G">Sector G (Floors 61-70)</option>
+      <option value="H">Sector H (Floors 71-80)</option>
+      <option value="I">Sector I (Floors 81-90)</option>
+      <option value="J">Sector J (Floors 91-100)</option>
+    </select>
+    <input id="nexusSearchInput" placeholder="Search any floor..." oninput="filterNexusFloors()" style="margin-bottom:8px">
+    <div id="nexusFloorsList" class="list" style="max-height:160px;overflow-y:auto"></div>
+  </div>
+</div>
+</section>
+
+<!-- ZORD FLEET (60+ ZORDS) -->
+<section id="zords" class="view">
+<div class="panelhead"><div><h1 class="title">🤖 ZORD FLEET // 60+ OPERATIONAL MACHINES</h1><div class="sub">COMPLETE MULTIVERSE ROSTER & UPGRADE TIERS</div></div><span class="sim">FLEET READY</span></div>
+<div class="grid g3" style="margin-bottom:12px">
+  <div class="card"><b>FILTER FLEET:</b><br><br>
+    <select id="zordFilter" onchange="renderZordFleet()">
+      <option value="all">All 60+ Zords</option>
+      <option value="core">Core Zords (01-05)</option>
+      <option value="advanced">Advanced Zords (06-20)</option>
+      <option value="restricted">Restricted Zords (21-25)</option>
+      <option value="expansion">Expanded Zords (26-60)</option>
+    </select>
+  </div>
+  <div class="card" style="grid-column:span 2">
+    <b>MEGAZORD COMBINATIONS:</b><br><br>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="notify('Zenith Omega Megazord Formed!')">Zenith Omega</button>
+      <button onclick="notify('Phoenix Emperor Megazord Formed!')">Phoenix Emperor</button>
+      <button onclick="notify('Terra Titan Megazord Formed!')">Terra Titan</button>
+      <button onclick="notify('Void Nexus Megazord Formed!')">Void Nexus</button>
+      <button onclick="notify('Celestial Guardian Megazord Formed!')">Celestial Guardian</button>
+    </div>
+  </div>
+</div>
+<div class="grid g3" id="zordFleetGrid" style="max-height:400px;overflow-y:auto"></div>
+</section>
+
+<!-- SQUAD COMBOS & MULTIVERSE OVERDRIVE -->
+<section id="combos" class="view">
+<div class="panelhead"><div><h1 class="title">SQUAD COMBOS & MULTIVERSE OVERDRIVE</h1><div class="sub">INTERACTIVE VISUALIZER</div></div></div>
+<div class="grid g3" style="margin-bottom:12px">
+  <div class="card">
+    <div class="small muted">Anas, Emad, Mohamad</div>
+    <b style="color:var(--red);font-size:16px">Inferno Storm</b>
+    <p class="small muted">Anas swings Fire Whip in a wide circle while Emad shadow-dashes along perimeter. Mohamad discharges Volt Gauntlets, creating a high-voltage plasma tornado.</p>
+    <button class="primary" style="width:100%" onclick="notify('Inferno Storm Executed!')">EXECUTE SIMULATION ►</button>
+  </div>
+  <div class="card">
+    <div class="small muted">Abdulla, Leen, Anas</div>
+    <b style="color:var(--cyan);font-size:16px">Titan Pulse</b>
+    <p class="small muted">Leen casts pink hard-light bubble. Anas binds targets with Fire Whip. Abdulla performs terminal-velocity seismic ground slam.</p>
+    <button class="primary" style="width:100%" onclick="notify('Titan Pulse Executed!')">EXECUTE SIMULATION ►</button>
+  </div>
+  <div class="card" style="border:1px solid var(--pink)">
+    <div class="small muted">Leen, Abdulla, Emad</div>
+    <b style="color:var(--pink);font-size:16px">Artistic Anarchy</b>
+    <p class="small muted">Leen sketches hard-light pink platforms in mid-air for mobility, while Abdulla constructs gigantic emerald-green paint-hammer constructs to smash through enemy defenses. Emad phases through the chaos with his Phantom Blade, setting each hard-light construct ablaze with creative cosmic fire that leaves burning trails across the field.</p>
+    <button class="primary" style="width:100%;background:#3d1428;border-color:var(--pink);color:var(--pink)" onclick="notify('Artistic Anarchy Executed!')">EXECUTE SIMULATION ►</button>
+  </div>
+</div>
+<div class="grid g3" style="margin-bottom:12px">
+  <div class="card" style="border:1px solid var(--green);grid-column:span 3">
+    <div class="small muted">Emad, Leen, Hulk</div>
+    <b style="color:var(--green);font-size:16px">Gamma Phantom Prism</b>
+    <p class="small muted">Leen projects a hard-light geometric crystalline cage around targets, Hulk delivers a world-shaking gamma punch directly into the structure to maximize concussive force, and Emad phases straight through the shockwave core with his blazing Phantom Blade to seal the fracture.</p>
+    <button class="primary" style="width:100%;background:#0c331c;border-color:var(--green);color:var(--green);margin-top:8px" onclick="notify('Gamma Phantom Prism Executed!')">EXECUTE SIMULATION ►</button>
+  </div>
+</div>
+<div class="grid g2">
+  <div class="card">
+    <div class="small muted">Anas, Mohamad, Rydar, Ziad</div>
+    <b style="color:var(--blue);font-size:16px">Quantum Overdrive</b>
+    <p class="small muted">Anas opens a rift of multiversal code. Mohamad routes power into Tesla Chakram. Rydar and Ziad add solar-shadow amplifiers.</p>
+    <button class="primary" style="width:100%" onclick="notify('Quantum Overdrive Executed!')">EXECUTE SIMULATION ►</button>
+  </div>
+  <div class="card" style="border:1px solid var(--gold)">
+    <div style="display:flex;justify-content:space-between"><span class="small muted">Full Squad (All 8 Heroes)</span><span class="sim" style="color:var(--gold)">ULTIMATE</span></div>
+    <b style="color:var(--gold);font-size:16px">Multiverse Overdrive (Ultimate Move)</b>
+    <p class="small muted">All 8 champions synchronize maximum power output—including Hulk's gamma surge and Anas's code rifts—for absolute sector dominion.</p>
+    <button class="primary" style="width:100%;background:#3d2c00;border-color:var(--gold);color:var(--gold)" onclick="notify('MULTIVERSE OVERDRIVE ACTIVATED!')">EXECUTE SIMULATION ►</button>
+  </div>
+</div>
+</section>
+
+<!-- SUITS -->
+<section id="suits" class="view">
+<div class="panelhead"><div><h1 class="title">🛡️ SUIT MANAGER</h1><div class="sub">Advanced tactical armor loadouts (All 8 Suits)</div></div><span class="sim">SIMULATION</span></div>
+<div class="grid g4" id="suitGrid"></div><br>
+<div class="card"><div class="panelhead"><b>SUIT CONTROL</b><span id="suitStatus" class="success">READY</span></div><div class="grid g4">
+<button onclick="suitAction('EQUIP')">🛡️ EQUIP</button><button onclick="suitAction('CALIBRATE')">🎛 CALIBRATE</button><button onclick="suitAction('BOOST')">⚡ BOOST</button><button onclick="suitAction('RECALL')">↩ RECALL</button></div><br><div id="suitLog" class="row small">Select a suit to control.</div></div>
+</section>
+
+<!-- FIGHT HUD WITH WATCHFUL SWARM INTEGRATION -->
+<section id="fight" class="view">
+<div class="panelhead">
+  <div><h1 class="title">⚔️ INTERACTIVE FIGHT HUD & WATCHFUL SWARM</h1><div class="sub">Embedded live with <b>watchful-swarm.lovable.app</b> AI agent telemetry</div></div>
+  <span class="success" id="swarmStatusBadge">🐝 WATCHFUL SWARM: ONLINE (lovable.app)</span>
+</div>
+<div class="grid g2" style="height:calc(100vh - 200px)">
+  <div class="hud" style="height:100%;display:flex;flex-direction:column;justify-content:space-between">
+    <div class="hudtop" style="display:flex;justify-content:space-between">
+      <div><b id="fightHero">ANAS ALROZ</b><div class="small muted">ACTIVE HERO</div></div>
+      <div><b id="fightEnemy">CHRONOS QUANTUM THREAT</b><div class="small muted">ENEMY HP: <span id="enemyHpNum">100%</span></div></div>
+    </div>
+    <div style="position:relative;z-index:2;display:grid;place-items:center;height:200px"><div class="target"><b id="energy">100%</b></div></div>
+    <div class="hudbottom" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="control card" style="padding:8px"><b>HP <span id="hp">100%</span></b><div class="meter"><i id="hpbar" style="width:100%;background:linear-gradient(90deg,#34d399,#22d3ee)"></i></div></div>
+      <div class="control card" style="padding:8px"><b>ENERGY</b><div class="meter"><i id="energybar" style="width:100%"></i></div></div>
+      <div class="control card" style="padding:8px"><b>SHIELD</b><div class="meter"><i id="shieldbar" style="width:100%;background:linear-gradient(90deg,#38bdf8,#a78bfa)"></i></div></div>
+    </div>
+    <div class="grid g4" style="margin-top:8px">
+      <button onclick="fightAction('STRIKE')" class="primary">⚡ STRIKE</button>
+      <button onclick="fightAction('ABILITY')">✨ ABILITY</button>
+      <button onclick="fightAction('SWARM')">🐝 SWARM AI</button>
+      <button onclick="fightAction('COMBO')">💥 COMBO</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div class="panelhead"><b>🐝 WATCHFUL SWARM EMBEDDED FEED</b><a href="https://watchful-swarm.lovable.app" target="_blank" style="color:var(--cyan);font-size:10px;text-decoration:none">[OPEN LINK]</a></div>
+    <iframe src="https://watchful-swarm.lovable.app" style="width:100%;flex:1;background:#030812;border:1px solid var(--line);border-radius:8px"></iframe>
+  </div>
+</div>
+</section>
+
+<!-- HQ CONTROL -->
+<section id="hq" class="view">
+<div class="panelhead"><div><h1 class="title">HQ CONTROL // MULTIVERSAL POWER & DIMENSIONAL DEFENSE</h1><div class="sub">SECTOR ZENITH PRIME</div></div><span id="hqState" class="success">NORMAL</span></div>
+<div class="grid g4" style="margin-bottom:12px">
+  <div class="card"><div class="label">HARD-LIGHT SHIELD</div><div class="stat" style="color:var(--pink)">100%</div><button style="width:100%;margin-top:8px" onclick="notify('Shield Boosted')">BOOST SHIELD</button></div>
+  <div class="card"><div class="label">RIFT STABILITY</div><div class="stat" style="color:var(--cyan)">OPTIMAL</div><button style="width:100%;margin-top:8px" onclick="notify('Rifts Calibrated')">CALIBRATE</button></div>
+  <div class="card"><div class="label">POWER GRID</div><div class="stat" style="color:var(--gold)">9.8 GW</div><button style="width:100%;margin-top:8px" onclick="notify('Power Rerouted')">REROUTE</button></div>
+  <div class="card"><div class="label">DEFENSE TURRETS</div><div class="stat" style="color:var(--green)">ONLINE</div><button style="width:100%;margin-top:8px" onclick="notify('Turrets Cycled')">CYCLE</button></div>
+</div>
+<div class="grid g2">
+  <div class="card">
+    <div class="panelhead"><b>DIMENSIONAL RIFT GENERATOR</b></div>
+    <p class="small muted">Select target multiversal breach quadrant:</p>
+    <select id="riftQuadSelect" style="margin-bottom:12px">
+      <option>Sector Zenith (Anas Alroz)</option>
+      <option>Sector Vortex (Mohamad Albadri)</option>
+      <option>Sector Flame (Emad Albadri)</option>
+      <option>Sector Sentinel (Rydar)</option>
+      <option>Sector Blaze (Ziad)</option>
+      <option>Sector Gamma (Hulk)</option>
+    </select>
+    <div class="grid g2">
+      <button class="primary" onclick="notify('Code Rift Portal Active!')">OPEN CODE RIFT ►</button>
+      <button onclick="notify('Portal Collapsed')">COLLAPSE PORTAL</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="panelhead"><b>SQUAD COMMS DISPATCH</b></div>
+    <p class="small muted">Broadcast direct directive to squad member:</p>
+    <select id="dispatchTargetSelect" style="margin-bottom:12px">
+      <option>Anas (Team Leader)</option>
+      <option>Mohamad (Tech Genius)</option>
+      <option>Emad (Creative Vanguard)</option>
+      <option>Leen (Tactical Designer)</option>
+      <option>Abdulla (Tank)</option>
+      <option>Rydar (Stealth)</option>
+      <option>Ziad (Support)</option>
+      <option>Hulk (Gamma Titan)</option>
+    </select>
+    <input id="dispatchMsgInput" placeholder="Write tactical order..." style="margin-bottom:12px">
+    <button class="primary" style="width:100%" onclick="sendDispatchMsg()">TRANSMIT ENCRYPTED COMMS 📡</button>
+  </div>
+</div>
+</section>
+
+<!-- MISSIONS -->
+<section id="missions" class="view">
+<div class="panelhead"><div><h1 class="title">🎯 MISSION CENTER</h1><div class="sub">Story, training and fictional multiverse missions</div></div><button onclick="newMission()">+ NEW MISSION</button></div>
+<div id="missionList" class="list"></div>
+</section>
+
+<!-- TASKS -->
+<section id="tasks" class="view"><div class="panelhead"><div><h1 class="title">📋 TASK MANAGER</h1><div class="sub">Persistent local tasks</div></div><button onclick="addTask()">+ ADD TASK</button></div><div id="taskList" class="list"></div></section>
+
+<!-- CALENDAR -->
+<section id="calendar" class="view">
+<div class="panelhead"><div><h1 class="title">📅 CALENDAR & SCHEDULER</h1><div class="sub">Browser-local operational planning center</div></div><button onclick="addCalendarEventModal()">+ NEW EVENT</button></div>
+<div class="grid g2">
+  <div class="card">
+    <b>SCHEDULED MISSIONS & EVENTS</b>
+    <div id="calEventsList" class="list" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <b>QUICK ADD EVENT</b><br><br>
+    <input type="date" id="calDate" style="margin-bottom:10px"><br>
+    <input id="calEvent" placeholder="Event title or mission name" style="margin-bottom:10px"><br>
+    <select id="calType" style="margin-bottom:12px"><option>Mission</option><option>Study Session</option><option>Tech Build</option><option>Meeting</option></select>
+    <button class="primary" style="width:100%" onclick="addCalendar()">ADD TO SCHEDULE</button>
+  </div>
+</div>
+</section>
+
+<!-- NOTES -->
+<section id="notes" class="view"><div class="panelhead"><div><h1 class="title">📝 NOTES</h1><div class="sub">Local-first notes</div></div><button onclick="addNote()">+ NEW NOTE</button></div><div id="noteList" class="grid g2"></div></section>
+
+<!-- AI CORE -->
+<section id="ai" class="view">
+<div class="panelhead">
+  <div><h1 class="title">🤖 ANAS OS AI ASSISTANT</h1><div class="sub">Powered by Gemini 3.8 Flash API + Direct OS Control Actions</div></div>
+  <button onclick="clearAiChat()" class="danger" style="padding:4px 10px;font-size:11px">CLEAR CHAT</button>
+</div>
+<div class="ai-core-container">
+  <div id="aiMessagesBox" class="ai-messages">
+    <div class="ai-msg assistant">
+      <div class="ai-avatar" style="background:#22d3ee22;color:var(--cyan)">🤖</div>
+      <div>Hello Anas! I am your <b>ANAS OS Neural AI Assistant</b> powered by Gemini 3.8 Flash. Type commands like <i>"open radar map"</i>, <i>"trigger lockdown"</i>, or <i>"add task Review code"</i>!</div>
+    </div>
+  </div>
+  <div class="ai-suggestions">
+    <div class="ai-suggestion-chip" onclick="sendAiPreset('Open radar map')">📡 Open radar map</div>
+    <div class="ai-suggestion-chip" onclick="sendAiPreset('Trigger lockdown')">🚨 Trigger lockdown</div>
+    <div class="ai-suggestion-chip" onclick="sendAiPreset('Show zord fleet stats')">🤖 Show zord fleet stats</div>
+    <div class="ai-suggestion-chip" onclick="sendAiPreset('Add task Build new web feature')">📋 Add task: Build web feature</div>
+  </div>
+  <form onsubmit="handleAiSubmit(event)" class="row" style="margin:0;background:#030712;border-top:1px solid var(--line);border-radius:0;padding:12px">
+    <input id="aiChatInput" placeholder="Ask AI or command OS (e.g. 'open radar map')..." autocomplete="off" style="background:#06101c">
+    <button class="primary" type="submit">SEND ►</button>
+  </form>
+</div>
+</section>
+
+<!-- SCHOOL -->
+<section id="school" class="view">
+<div class="panelhead"><div><h1 class="title">🎓 SCHOOL CENTER</h1><div class="sub">Subjects, homework assignments & study progress</div></div><button onclick="addSchoolSubject()">+ ADD SUBJECT</button></div>
+<div id="schoolList" class="grid g3"></div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" class="view">
+<div class="panelhead"><div><h1 class="title">🚀 PROJECT CENTER</h1><div class="sub">Build ideas into web applications & hardware projects</div></div><button onclick="addProject()">+ NEW PROJECT</button></div>
+<div id="projectList" class="grid g3"></div>
+</section>
+
+<!-- DEVELOPER LAB -->
+<section id="dev" class="view">
+<div class="panelhead"><div><h1 class="title">🧑‍💻 DEVELOPER LAB</h1><div class="sub">Browser-safe coding utilities & sandbox</div></div><button onclick="saveDevCode()" class="primary">SAVE SCRIPT</button></div>
+<div class="grid g2">
+  <div class="card"><textarea id="code" style="width:100%;height:300px;background:#02060b;color:#b9f6ff;border:1px solid var(--line);padding:12px;font-family:monospace"><h1>ANAS OS</h1><p>Web prototype v1018</p></textarea></div>
+  <div class="card"><iframe id="preview" style="width:100%;height:300px;background:white;border:0"></iframe><br><button onclick="previewCode()">RUN PREVIEW</button></div>
+</div>
+</section>
+
+<!-- CREATOR -->
+<section id="creator" class="view">
+<div class="panelhead"><div><h1 class="title">🎨 CREATOR STUDIO</h1><div class="sub">Design, drawing & story concept workspace</div></div><button onclick="clearCanvas()">CLEAR CANVAS</button></div>
+<div class="card" style="display:grid;place-items:center;background:#02060b">
+  <canvas id="creatorCanvas" width="700" height="350" style="background:#06101c;border:1px solid var(--line);border-radius:8px;cursor:crosshair"></canvas>
+  <div class="small muted" style="margin-top:8px">Click and drag inside the canvas to sketch concepts or wireframes.</div>
+</div>
+</section>
+
+<!-- PODCAST -->
+<section id="podcast" class="view">
+<div class="panelhead"><div><h1 class="title">🎙️ PODCAST CENTER</h1><div class="sub">Ideas, episode scripts and broadcast scheduling</div></div><button onclick="addPodcastIdea()">+ ADD IDEA</button></div>
+<div class="grid g3">
+  <div class="card"><b>EPISODE IDEAS</b><div id="podcastIdeas" class="list" style="margin-top:10px"></div></div>
+  <div class="card"><b>DRAFTS & SCRIPTS</b><div id="podcastDrafts" class="list" style="margin-top:10px"></div></div>
+  <div class="card"><b>PUBLISHED EPISODES</b><div id="podcastPublished" class="list" style="margin-top:10px"></div></div>
+</div>
+</section>
+
+<!-- PLUGINS -->
+<section id="plugins" class="view"><div class="panelhead"><div><h1 class="title">🧩 PLUGIN CENTER</h1><div class="sub">Modular browser plugin architecture</div></div><button onclick="installPlugin()">+ INSTALL PLUGIN</button></div><div id="pluginList" class="grid g3"></div></section>
+
+<!-- DEVICES -->
+<section id="devices" class="view"><div class="panelhead"><div><h1 class="title">📱 DEVICE DASHBOARD</h1><div class="sub">Browser hardware specs</div></div></div><div class="grid g3"><div class="card"><span class="label">BROWSER</span><div class="stat" style="font-size:18px" id="browser"></div></div><div class="card"><span class="label">DISPLAY</span><div class="stat" style="font-size:18px" id="display"></div></div><div class="card"><span class="label">ONLINE</span><div class="stat" style="font-size:18px" id="online"></div></div></div></section>
+
+<!-- TOOLS -->
+<section id="tools" class="view"><div class="panelhead"><div><h1 class="title">🌐 WEB TOOLS</h1><div class="sub">Browser-native utilities</div></div></div><div class="grid g4"><button onclick="calc()">🧮 Calculator</button><button onclick="uuid()">🆔 UUID</button><button onclick="timeTool()">🕒 Timestamp</button><button onclick="notify('Timer tool ready')">⏱ Timer</button></div></section>
+
+<!-- LOGS -->
+<section id="logs" class="view"><div class="panelhead"><div><h1 class="title">📜 ACTIVITY LOG</h1><div class="sub">Local activity history</div></div><button onclick="clearLogs()">CLEAR</button></div><div id="logsList" class="list"></div></section>
+
+<!-- SETTINGS -->
+<section id="settings" class="view">
+<div class="panelhead"><div><h1 class="title">⚙️ SETTINGS</h1><div class="sub">ANAS OS personalization & AI configuration</div></div></div>
+<div class="grid g2">
+  <div class="card">
+    <b>GEMINI AI API KEY CONFIGURATION</b>
+    <p class="small muted" style="margin:8px 0">Enter your Gemini API key below. The AI Core connects directly via `gemini-3.8-flash`.</p>
+    <input type="password" id="aiApiKeyInput" placeholder="Paste your Gemini API key (AIza...)" style="margin-bottom:10px">
+    <button class="primary" onclick="saveApiKey()">SAVE API KEY</button>
+  </div>
+  <div class="card">
+    <b>Theme Accent</b><br><br>
+    <input type="color" id="accent" value="#22d3ee" onchange="setAccent(this.value)"><br><br>
+    <b>System Data</b><br><br>
+    <button onclick="exportData()">EXPORT BACKUP</button> <button onclick="resetData()" class="danger">RESET OS</button>
+  </div>
+</div>
+</section>
+</main>
+</div>
+
+<!-- FACILITY LOCKDOWN OVERLAY -->
+<div id="lockdownOverlay">
+  <div class="lockdown-box">
+    <div style="font-size:32px">🚨</div>
+    <h2 style="color:var(--red);letter-spacing:2px;margin:8px 0">FACILITY LOCKDOWN ACTIVE</h2>
+    <div class="small muted" style="margin-bottom:16px">FULL CODE-RED PROTOCOL ENGAGED // BLOCKED PERIMETER</div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card" style="padding:8px"><div class="small muted">BLAST DOORS</div><b style="color:var(--red)">SEALED (100%)</b></div>
+      <div class="card" style="padding:8px"><div class="small muted">TURRETS</div><b style="color:var(--red)">ARMED (TRACKING)</b></div>
+      <div class="card" style="padding:8px"><div class="small muted">ENERGY GRID</div><b style="color:var(--red)">DEFENSE ONLY</b></div>
+      <div class="card" style="padding:8px"><div class="small muted">SIREN STATUS</div><b style="color:var(--red)">BLARING 🔊</b></div>
+    </div>
+    <div class="small muted" style="margin-bottom:6px;text-align:left">ENTER OVERRIDE AUTHORIZATION CODE (DEFAULT: <b>1000</b> OR <b>OVERRIDE</b>):</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="overridePasscode" placeholder="Type override passcode..." style="border-color:var(--red)">
+      <button class="danger" style="white-space:nowrap" onclick="deactivateLockdown()">DEACTIVATE ►</button>
+    </div>
+    <div class="grid g2">
+      <button onclick="toggleLockdownSiren()">MUTE / UNMUTE SIREN</button>
+      <button onclick="notify('Emergency Bypass Forced')">FORCE EMERGENCY BYPASS</button>
+    </div>
+  </div>
+</div>
+
+<!-- OS TASKBAR -->
+<div id="taskbar">
+  <div class="tb-left">
+    <button class="start-btn" onclick="toggleStartMenu()">❖ START</button>
+    <div class="tb-item" onclick="show('home')">🏠 Dashboard</div>
+    <div class="tb-item" onclick="show('comms')">💬 Comms</div>
+    <div class="tb-item" onclick="show('nexus')">🏢 Nexus</div>
+    <div class="tb-item" onclick="show('zords')">🤖 Zords</div>
+    <div class="tb-item" onclick="show('fight')">⚔️ Fight HUD</div>
+    <div class="tb-item" onclick="show('school')">🎓 School</div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-item" style="color:var(--cyan);font-weight:700">XP: <span id="tbXp">500</span></div>
+    <div class="tb-item" id="tbClock">--:--</div>
+    <button class="danger" style="padding:4px 8px;font-size:10px" onclick="lockSession()">🔒 LOCK</button>
+  </div>
+</div>
+
+<!-- START MENU -->
+<div id="startMenu" class="start-menu">
+  <div class="panelhead"><b>ANAS OS START</b><span class="success">ONLINE</span></div>
+  <div class="grid g2" style="margin-bottom:12px">
+    <button onclick="show('home');toggleStartMenu()">🏠 Home</button>
+    <button onclick="show('comms');toggleStartMenu()">💬 Comms</button>
+    <button onclick="show('ai');toggleStartMenu()">🤖 AI Core</button>
+    <button onclick="show('nexus');toggleStartMenu()">🏢 Nexus</button>
+    <button onclick="show('zords');toggleStartMenu()">🤖 Zords</button>
+    <button onclick="show('fight');toggleStartMenu()">⚔️ Fight HUD</button>
+    <button onclick="show('radar');toggleStartMenu()">📡 Radar</button>
+    <button onclick="show('settings');toggleStartMenu()">⚙️ Settings</button>
+  </div>
+  <button class="danger" style="width:100%" onclick="lockSession();toggleStartMenu()">🔒 LOCK SESSION</button>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="heroModal" class="modal"><div class="modalbox"><div class="modalhead"><b>🦸 ANAS OS — HERO HQ WINDOW</b><button onclick="closeModal()">✕</button></div><div class="modalbody" id="heroWindowBody"></div></div></div>
+
+<script>
+const HEROES = [
+  { id: 'anas', name: 'Anas Alroz', alias: 'Crimson Wing / Phantom King', color: '#fb4b5f', identity: 'Student & Tech, Code Architect', role: 'Team Leader', theme: 'Zenith', weapon: 'Fire Whip', weapons: ['Fire Whip', 'Crimson Chakram', 'Code Rifts', 'Multiversal Chains', 'Shadow Teleportation'] },
+  { id: 'mohamad', name: 'Mohamad Albadri', alias: 'Blue Vortex', color: '#38bdf8', identity: 'Student & Tech', role: 'Tech Genius', theme: 'Blue', weapon: 'Volt Gauntlets', weapons: ['Volt Gauntlets', 'Tesla Discs', 'Electric Shield'] },
+  { id: 'emad', name: 'Emad Albadri', alias: 'Flame Phantom', color: '#ef4444', identity: 'Student & Creative', role: 'Creative Vanguard', theme: 'Red', weapon: 'Phantom Blade', weapons: ['Phantom Blade', 'Phase Dash', 'Flame Aura'] },
+  { id: 'leen', name: 'Leen', alias: 'Striking Pink', color: '#f472b6', identity: 'Designer', role: 'Tactical Designer', theme: 'Pink', weapon: 'Starlight Whip', weapons: ['Starlight Whip', 'Hard-Light Prism', 'Light Barrier'] },
+  { id: 'abdulla', name: 'Abdulla', alias: 'Smashing One', color: '#34d399', identity: 'Artist', role: 'Tank', theme: 'Green', weapon: 'Impact Gauntlets', weapons: ['Impact Gauntlets', 'Seismic Slam', 'Emerald Hammer'] },
+  { id: 'rydar', name: 'Rydar', alias: 'Shadow Sentinel', color: '#a78bfa', identity: 'Scout', role: 'Stealth', theme: 'Purple', weapon: 'Shadow Daggers', weapons: ['Shadow Daggers', 'Cloak Matrix', 'Stealth Veil'] },
+  { id: 'ziad', name: 'Ziad', alias: 'Solar Blaze', color: '#facc15', identity: 'Artillery', role: 'Support', theme: 'Gold', weapon: 'Solar Cannon', weapons: ['Solar Cannon', 'Blaze Array'] },
+  { id: 'hulk', name: 'Hulk', alias: 'Gamma Titan', color: '#22c55e', identity: 'Brute Force', role: 'Heavy Brawler', theme: 'Green', weapon: 'Gamma Smash Fists', weapons: ['Gamma Smash Fists', 'Shockwave Clap', 'Unstoppable Surge'] }
+];
+
+const ZORDS = [
+  { id: 1, name: 'Crimson Phoenix Zord', cat: 'core', hero: 'Anas Alroz', color: '#fb4b5f', desc: 'Zenith mobility and cosmic flame wings.' },
+  { id: 2, name: 'Blue Vortex Zord', cat: 'core', hero: 'Mohamad Albadri', color: '#38bdf8', desc: 'Quantum-electric wolf form.' },
+  { id: 3, name: 'Flame Phantom Zord', cat: 'core', hero: 'Emad Albadri', color: '#ef4444', desc: 'Phantom panther with phase flames.' },
+  { id: 4, name: 'Starlight Guardian Zord', cat: 'core', hero: 'Leen', color: '#f472b6', desc: 'Crystal pegasus hard-light generator.' },
+  { id: 5, name: 'Emerald Titan Zord', cat: 'core', hero: 'Abdulla', color: '#34d399', desc: 'Armored titan seismic powerhouse.' }
+];
+for(let i=6; i<=60; i++){
+  ZORDS.push({ id: i, name: `Expansion Zord Mk-${i}`, cat: 'expansion', hero: 'Multiverse Taskforce', color: i%2===0?'#22d3ee':'#a78bfa', desc: `Automated tactical support unit.` });
+}
+
+const NEXUS_SECTORS = {
+  A: { name: 'Sector A — Surface Operations and Command', floors: ['01 — Zenith Arrival Terminal: Landing pads & visitor screening.', '02 — Strategic Command Center: Mission planning & operational briefings.', '03 — ANAS OS Intelligence Core: AI operations & Zord monitoring.', '04 — Council Chamber: Team meetings & alliance negotiations.', '05 — Mission Archives: Historical mission records & debriefings.', '06 — Communications Center: Secure fictional team communications.', '07 — Multiverse Mapping Center: Dimensional maps & anomaly tracking.', '08 — Operations Planning Wing: Mission schedules & resource allocation.', '09 — Security Administration: Access classifications & authorized personnel.', '10 — Emergency Coordination Center: Evacuation planning & facility recovery.'] },
+  B: { name: 'Sector B — Engineering and Robotics', floors: ['11 — Robotics Engineering Lab: Robotic limbs & mechanical prototypes.', '12 — Zord Mechanical Systems Lab: Transformation mechanisms & docking.', '13 — Cybernetics Lab: Sensor networks & robotic augmentation.', '14 — Drone Development Factory: Repair drones & reconnaissance units.', '15 — Nanofabrication Laboratory: Small components & miniature robotics.', '16 — Advanced Materials Laboratory: Adaptive armor & impact composites.', '17 — Heavy Manufacturing Plant: Giant armor plates & Zord components.', '18 — Robotics Testing Chamber: Movement testing & simulations.', '19 — Engineering Prototype Vault: Experimental mechanisms.', '20 — Automated Repair Center: Maintenance arms & Zord restoration.'] },
+  C: { name: 'Sector C — Computing and Artificial Intelligence', floors: ['21 — Quantum Computing Laboratory: Quantum-system research.', '22 — AI Development Laboratory: Fictional assistant intelligence.', '23 — Tactical Simulation Laboratory: Simulated enemy behavior.', '24 — Zord Intelligence Laboratory: Zord navigation & personalities.', '25 — Computational Modeling Center: Physics simulations & models.', '26 — Data Archive: Mission databases & technical specs.', '27 — Holographic Systems Laboratory: Interactive holograms.', '28 — Cybersecurity Research Laboratory: Network defense testing.', '29 — Autonomous Robotics Laboratory: Self-guided maintenance robots.', '30 — AI Evaluation Chamber: Controlled AI decision testing.'] },
+  D: { name: 'Sector D — Energy and Cosmic Science', floors: ['31 — Multiversal Energy Laboratory: Research into signature types.', '32 — Quantum Energy Laboratory: Quantum-field studies.', '33 — Cosmic Observation Laboratory: Astronomical observations.', '34 — Energy Waveform Laboratory: Frequency analysis & Zord sync.', '35 — Core Containment Laboratory: Isolated energy testing.', '36 — Zenith Reactor Chamber: Primary energy distribution.', '37 — Backup Power Complex: Redundant fictional power systems.', '38 — Energy Shield Laboratory: Protective fields & barriers.', '39 — Plasma Systems Laboratory: Plasma-energy simulation.', '40 — Experimental Energy Vault: Restricted energy prototypes.'] },
+  E: { name: 'Sector E — Hero Suits and Weapons', floors: ['41 — Suit Design Laboratory: Armor concepts & hero development.', '42 — Helmet and HUD Laboratory: Visual overlays & comms.', '43 — Weapon Fabrication Workshop: Fictional energy weapons.', '44 — Arsenal Archive: Cataloged weapons & inventory.', '45 — Crimson Wing Armor Forge: Anas armor & Fire Whip.', '46 — Blue Vortex Technology Forge: Mohamad tech & Volt Gauntlets.', '47 — Flame Phantom Forge: Emad phantom blade forge.', '48 — Starlight Design Atelier: Leen hard-light equipment.', '49 — Emerald Titan Forge: Abdulla reinforced armor & hammers.', '50 — Suit Testing and Certification: Combat trials & approval.'] },
+  F: { name: 'Sector F — Training and Medical Facilities', floors: ['51 — Combat Simulation Arena: Configurable battlefields.', '52 — Holographic Training Chamber: Virtual obstacles & practice.', '53 — Team Combination Arena: Coordinated attack training.', '54 — Megazord Training Chamber: Giant-robot movement simulations.', '55 — Flight Simulation Center: Aerial movement & spacecraft flight.', '56 — Environmental Survival Laboratory: Extreme environment trials.', '57 — Hero Medical Center: Medical care & emergency support.', '58 — Suit Diagnostics Clinic: Armor inspection & recovery.', '59 — Physical Conditioning Center: Strength & agility training.', '60 — Rehabilitation and Recovery Wing: Post-mission support.'] },
+  G: { name: 'Sector G — The Zord Fleet', floors: ['61 — Crimson Phoenix Hangar: Anas primary aerial Zord.', '62 — Blue Vortex Hangar: Mohamad technological Zord.', '63 — Flame Phantom Hangar: Emad combat Zord.', '64 — Starlight Guardian Hangar: Leen defensive Zord.', '65 — Emerald Titan Hangar: Abdulla heavy-assault Zord.', '66 — Omega Dragon Hangar: Restricted cosmic dragon.', '67 — Celestial and Solar Hangar: Lion & Falcon storage.', '68 — Stealth and Reconnaissance Hangar: Scorpion & Owl.', '69 — Aquatic and Environmental Hangar: Shark & Leviathan.', '70 — Heavy Assault Hangar: Gorilla, Rhino & Rex.'] },
+  H: { name: 'Sector H — Megazords and Fleet Engineering', floors: ['71 — Megazord Assembly Hall: Primary 5-Zord combination chamber.', '72 — Phoenix Emperor Assembly Bay: Aerial cosmic combination.', '73 — Terra Titan Assembly Bay: Heavy armor combination.', '74 — Void Nexus Assembly Bay: Stealth dimensional mobility.', '75 — Megazord Core Synchronization Lab: Core alignment testing.', '76 — Transformation Rail Network: Mechanical positioning.', '77 — Zord Maintenance Control: Fleet inspection schedules.', '78 — Experimental Zord Hangar: Prototype Zords.', '79 — Fleet Logistics Center: Equipment transport & supplies.', '80 — Launch and Recovery Control: Deployment coordination.'] },
+  I: { name: 'Sector I — Dimensional and Space Operations', floors: ['81 — Dimensional Physics Laboratory: Portal theory.', '82 — Multiverse Gateway Chamber: Primary dimensional transit.', '83 — Chrono Simulation Laboratory: Time-anomaly models.', '84 — Alternate Reality Archive: Discovered fictional worlds.', '85 — Xenobiology Research Laboratory: Alien organisms.', '86 — Anomaly Research Laboratory: Strange artifacts.', '87 — Spacecraft Engineering Bay: Spacecraft construction.', '88 — Orbital Systems Center: Space navigation.', '89 — Interdimensional Fleet Dock: Advanced spacecraft transport.', '90 — Cosmic Navigation Observatory: Long-range route planning.'] },
+  J: { name: 'Sector J — Omega Restricted Operations', floors: ['91 — Omega Command Chamber: Secondary high-level command.', '92 — Restricted Artifact Vault: Secure fictional relics.', '93 — Experimental Suit Vault: Prototype & retired suit storage.', '94 — Restricted Zord Archive: Specialized experimental Zords.', '95 — Emergency Fortress Control: Lockdown & recovery.', '96 — Master Intelligence Archive: Centralized intelligence.', '97 — Zenith Prime Research Chamber: Master Zord research.', '98 — Omega Synchronization Chamber: Approved combinations.', '99 — Phantom King War Room: Anas highest-level command.', '100 — Zenith Core Sanctum: Master core & 5 synchronized channels.'] }
+};
+
+const SUITS = [
+  { id: 'zenith', name: 'Zenith Crimson Suit', hero: 'Anas', color: '#fb4b5f', icon: '🟥', desc: 'Mobility loadout.' },
+  { id: 'vortex', name: 'Blue Vortex Suit', hero: 'Mohamad', color: '#38bdf8', icon: '🟦', desc: 'Quantum loadout.' },
+  { id: 'phantom', name: 'Flame Phantom Suit', hero: 'Emad', color: '#ef4444', icon: '🟥', desc: 'Flame loadout.' },
+  { id: 'starlight', name: 'Starlight Pink Suit', hero: 'Leen', color: '#f472b6', icon: '🩷', desc: 'Defense loadout.' },
+  { id: 'emerald', name: 'Emerald Smash Suit', hero: 'Abdulla', color: '#34d399', icon: '🟩', desc: 'Powerhouse loadout.' },
+  { id: 'shadow', name: 'Shadow Sentinel Suit', hero: 'Rydar', color: '#a78bfa', icon: '🟪', desc: 'Stealth loadout.' },
+  { id: 'solar', name: 'Solar Armor Suit', hero: 'Ziad', color: '#facc15', icon: '🟨', desc: 'Solar loadout.' },
+  { id: 'hulk', name: 'Gamma Titan Suit', hero: 'Hulk', color: '#22c55e', icon: '🟩', desc: 'Gamma armor loadout.' }
+];
+
+let tasks=JSON.parse(localStorage.anasTasks||'["Finish ANAS OS WEB v1018","Science revision","Podcast outline"]');
+let notes=JSON.parse(localStorage.anasNotes||'[]');
+let logs=JSON.parse(localStorage.anasLogs||'[]');
+let plugins=JSON.parse(localStorage.anasPlugins||'[{"name":"Core Widgets","cat":"Productivity","status":true}]');
+let calendarEvents=JSON.parse(localStorage.anasCalendar||'[{"date":"2026-10-12","title":"Science Fair Presentation","type":"Mission"}]');
+let squadChat = JSON.parse(localStorage.anasSquadChat || '[{"sender":"Mohamad","text":"All systems are online and green!","time":"9:30 PM"},{"sender":"Emad","text":"Ready for the next multiverse mission!","time":"9:31 PM"}]');
+
+let schoolSubjects = JSON.parse(localStorage.anasSchool || '[{"name":"Arabic","desc":"Favorite Subject","progress":95},{"name":"Mathematics","desc":"Algebra & Geometry","progress":80},{"name":"Science","desc":"Science Fair Project","progress":88}]');
+let projectsList = JSON.parse(localStorage.anasProjects || '[{"name":"ANAS OS WEB","desc":"Web OS command environment","prog":95},{"name":"Arduino System","desc":"RFID integration","prog":70}]');
+let podcastData = JSON.parse(localStorage.anasPodcast || '{"ideas":["Science Fair Highlights"],"drafts":["Episode 12"],"published":["Ep 1: Welcome"]}');
+
+let currentOperatorId = 'anas';
+let currentOperator = 'Anas Alroz';
+let activeChatChannel = 'squad';
+let xp=Number(localStorage.anasXP||500);
+let voiceOutputEnabled = true;
+let radarSweepActive = true;
+let sirenMuted = false;
+let audioCtx = null;
+let currentElevatorFloor = 1;
+
+let fightHp = 100;
+let fightEnergy = 100;
+let fightShield = 100;
+let enemyHp = 100;
+
+function playSfx(type){
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if(type === 'click'){
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+    } else if(type === 'success'){
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    }
+  } catch(e){}
+}
+
+function save(){
+  localStorage.anasTasks=JSON.stringify(tasks);
+  localStorage.anasNotes=JSON.stringify(notes);
+  localStorage.anasLogs=JSON.stringify(logs);
+  localStorage.anasPlugins=JSON.stringify(plugins);
+  localStorage.anasCalendar=JSON.stringify(calendarEvents);
+  localStorage.anasSquadChat=JSON.stringify(squadChat);
+  localStorage.anasSchool=JSON.stringify(schoolSubjects);
+  localStorage.anasProjects=JSON.stringify(projectsList);
+  localStorage.anasPodcast=JSON.stringify(podcastData);
+  localStorage.anasXP=xp;
+}
+
+function log(msg){logs.unshift({t:new Date().toLocaleTimeString(),msg});logs=logs.slice(0,80);save();renderLogs();renderActivity()}
+function notify(msg){playSfx('click');const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);log(msg)}
+
+function toggleSidebar(){
+  const app = document.getElementById('app');
+  app.classList.toggle('sidebar-hidden');
+  notify(app.classList.contains('sidebar-hidden') ? 'Sidebar hidden' : 'Sidebar restored');
+}
+
+function show(id,btn){
+  playSfx('click');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else document.querySelector(`.nav[onclick*="'${id}'"]`)?.classList.add('active');
+  log('Opened '+id.toUpperCase());
+}
+
+function fillHeroCredentials(){
+  const sel = document.getElementById('heroSelect').value;
+  const heroData = {
+    anas: {id: 'anas', name: 'Anas Alroz', pass: 'CrimsonWing2026!'},
+    mohamad: {id: 'mohamad', name: 'Mohamad Albadri', pass: 'BlueVortex2026!'},
+    emad: {id: 'emad', name: 'Emad Albadri', pass: 'FlamePhantom2026!'},
+    leen: {id: 'leen', name: 'Leen', pass: 'StarlightPink2026!'},
+    abdulla: {id: 'abdulla', name: 'Abdulla', pass: 'EmeraldSmash2026!'},
+    rydar: {id: 'rydar', name: 'Rydar', pass: 'ShadowSentinel2026!'},
+    ziad: {id: 'ziad', name: 'Ziad', pass: 'SolarBlaze2026!'},
+    hulk: {id: 'hulk', name: 'Hulk', pass: 'GammaTitan2026!'}
+  };
+  const d = heroData[sel] || heroData.anas;
+  document.getElementById('usernameInput').value = d.name;
+  document.getElementById('passInput').value = d.pass;
+  currentOperatorId = d.id;
+  currentOperator = d.name;
+}
+
+function handleLogin(){
+  playSfx('success');
+  const sel = document.getElementById('heroSelect').value;
+  currentOperatorId = sel;
+  const user = document.getElementById('usernameInput').value || 'Anas Alroz';
+  currentOperator = user;
+  document.getElementById('headerUser').textContent = user.toUpperCase();
+  document.getElementById('currentOpBadge').textContent = user;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('boot').style.display='grid';
+  notify('Authenticated operator: ' + user);
+  setTimeout(()=>{
+    document.getElementById('boot').style.display='none';
+    document.getElementById('app').style.display='grid';
+    document.getElementById('taskbar').style.display='flex';
+    initApp();
+  }, 1200);
+}
+
+function lockSession(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('taskbar').style.display='none';
+  document.getElementById('loginScreen').style.display='grid';
+  fillHeroCredentials();
+  notify('Session locked');
+}
+
+function toggleStartMenu(){
+  playSfx('click');
+  const m = document.getElementById('startMenu');
+  m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+
+function renderHeroes(){
+  document.getElementById('heroGrid').innerHTML=HEROES.map(h=>`
+    <div class="card hero-card" style="--accent:${h.color};cursor:pointer" onclick="inspectHero('${h.id}')">
+      <div class="hero-name">${h.name}</div>
+      <div style="color:${h.color};font-weight:800">${h.alias}</div>
+      <span class="tag" style="color:${h.color}">ROLE: ${h.role}</span>
+      <p class="small muted" style="margin-top:6px"><b>Weapon:</b> ${h.weapon}</p>
+      <div class="row small" style="margin-top:6px"><span>Inspect</span><button onclick="event.stopPropagation();selectHero('${h.id}')">SELECT</button></div>
+    </div>
+  `).join('');
+  renderHeroInspectorBar();
+}
+
+function renderHeroInspectorBar(){
+  const topBar = document.getElementById('heroInspectorBar');
+  if(!topBar) return;
+  topBar.innerHTML = HEROES.map(h=>`
+    <div class="card" style="cursor:pointer;border-left:3px solid ${h.color}" onclick="inspectHero('${h.id}')">
+      <div style="font-size:9px;color:${h.color}">HERO</div>
+      <b style="font-size:11px;display:block">${h.name.split(' ')[0].toUpperCase()}</b>
+      <div style="font-size:9px;color:var(--muted)">${h.role}</div>
+    </div>
+  `).join('');
+  inspectHero('anas');
+}
+
+function inspectHero(id){
+  const h = HEROES.find(x=>x.id===id);
+  if(!h) return;
+  document.getElementById('inspectName').textContent = h.name.toUpperCase();
+  document.getElementById('inspectRole').textContent = h.role;
+  document.getElementById('inspectAlias').textContent = h.alias;
+  document.getElementById('inspectId').textContent = h.identity;
+  document.getElementById('inspectWeapons').innerHTML = (h.weapons || [h.weapon]).map(w=>`<div class="row small"><span>${w}</span><span style="color:var(--green)">[EQUIPPED]</span></div>`).join('');
+}
+
+function playHeroAudio(){ speakText('Hero identification: ' + document.getElementById('inspectName').textContent); }
+function selectHero(id){ selectedHero=id; notify('Hero selected for combat: '+HEROES.find(x=>x.id===id).name); }
+
+function renderZordFleet(){
+  const filter = document.getElementById('zordFilter').value;
+  const filtered = ZORDS.filter(z => filter === 'all' || z.cat === filter);
+  document.getElementById('zordFleetGrid').innerHTML = filtered.map(z=>`
+    <div class="card zord" style="border-color:${z.color}55">
+      <div class="machine" style="color:${z.color}">🤖</div>
+      <b>${z.name}</b>
+      <div class="small muted"><b>Category:</b> ${z.cat.toUpperCase()}</div>
+      <div class="small muted"><b>Assigned:</b> ${z.hero}</div>
+      <p class="small" style="margin-top:4px">${z.desc}</p>
+      <button onclick="selectZord(${z.id})" style="width:100%;margin-top:6px">DEPLOY ZORD</button>
+    </div>
+  `).join('');
+}
+
+function selectZord(id){ notify('Deployed Zord: ' + ZORDS.find(x=>x.id===id).name); }
+
+function renderNexusFloors(){
+  const secKey = document.getElementById('nexusSectorSelect').value;
+  const sec = NEXUS_SECTORS[secKey];
+  document.getElementById('nexusSectorTitle').textContent = sec.name.toUpperCase();
+  document.getElementById('nexusFloorsList').innerHTML = sec.floors.map(f=>`
+    <div class="row small" onclick="takeElevatorTo(${f.substring(0,2)})"><span>🏢 ${f}</span><span style="color:var(--cyan)">[ELEVATOR]</span></div>
+  `).join('');
+}
+
+function filterNexusFloors(){
+  const q = document.getElementById('nexusSearchInput').value.toLowerCase();
+  const list = document.getElementById('nexusFloorsList');
+  let allFloors = [];
+  Object.values(NEXUS_SECTORS).forEach(s => allFloors.push(...s.floors));
+  const filtered = allFloors.filter(f => f.toLowerCase().includes(q));
+  list.innerHTML = filtered.map(f => `
+    <div class="row small" onclick="takeElevatorTo(${f.substring(0,2)})"><span>🏢 ${f}</span><span style="color:var(--cyan)">[ELEVATOR]</span></div>
+  `).join('') || '<div class="muted small">No matching floors found.</div>';
+}
+
+function takeElevatorTo(floorNum){
+  currentElevatorFloor = floorNum;
+  let floorName = `Floor ${floorNum < 10 ? '0' + floorNum : floorNum}`;
+  Object.values(NEXUS_SECTORS).forEach(s => {
+    s.floors.forEach(f => {
+      if(f.startsWith(floorNum < 10 ? '0' + floorNum : ''+floorNum)){
+        floorName = f;
+      }
+    });
+  });
+  document.getElementById('currentElevatorFloorDisplay').textContent = floorName;
+  document.getElementById('elevatorStatusBadge').textContent = `ELEVATOR AT FLOOR ${floorNum < 10 ? '0' + floorNum : floorNum}`;
+  notify(`🛗 Elevator arrived at ${floorName}`);
+  playSfx('success');
+}
+
+function takeElevatorToFloorNum(){
+  const val = parseInt(document.getElementById('elevatorTargetInput').value);
+  if(isNaN(val) || val < 1 || val > 100){ notify('Please enter a valid floor between 1 and 100'); return; }
+  takeElevatorTo(val);
+}
+
+function renderSuits(){document.getElementById('suitGrid').innerHTML=SUITS.map(s=>`<div class="card suit" style="border-color:${s.color}55"><div class="armor" style="color:${s.color}">${s.icon}</div><b>${s.name}</b><div class="small muted">${s.hero} • ${s.desc}</div><br><button onclick="selectSuit('${s.id}')">SELECT</button></div>`).join('')}
+function selectSuit(id){selectedSuit=id;notify(SUITS.find(x=>x.id===id).name+' selected')}
+function suitAction(a){const s=SUITS.find(x=>x.id===selectedSuit);document.getElementById('suitLog').textContent=`[SIM] ${a}: ${s.name}`;log('Suit '+a)}
+
+function selectMapNode(title, desc, coords, threat, color){
+  document.getElementById('nodeTitle').textContent = 'SECTOR TELEMETRY // ' + title.toUpperCase();
+  document.getElementById('nodeDesc').textContent = desc;
+  document.getElementById('nodeCoords').textContent = coords;
+  document.getElementById('nodeCoords').style.color = color;
+  const isSecure = !desc.includes('anomaly');
+  document.getElementById('nodeStatusBadge').textContent = isSecure ? 'STABLE' : 'ALERT';
+  document.getElementById('nodeStatusBadge').style.color = isSecure ? 'var(--green)' : 'var(--red)';
+  document.getElementById('nodeThreat').textContent = threat;
+  document.getElementById('nodeThreat').style.color = isSecure ? 'var(--green)' : 'var(--red)';
+  notify('Locked radar node: ' + title);
+}
+
+function toggleRadarSweep(){
+  radarSweepActive = !radarSweepActive;
+  const scanner = document.getElementById('radarScannerElem');
+  const btn = document.getElementById('sweepToggleBtn');
+  if(radarSweepActive){
+    scanner.style.animationPlayState = 'running';
+    btn.textContent = '🔄 SWEEP: ACTIVE';
+    btn.className = 'success';
+    notify('Radar sweep resumed');
+  } else {
+    scanner.style.animationPlayState = 'paused';
+    btn.textContent = '⏸️ SWEEP: PAUSED';
+    btn.className = 'danger';
+    notify('Radar sweep paused');
+  }
+}
+
+function triggerRadarScanPulse(){
+  const container = document.getElementById('radarContainer');
+  const pulse = document.createElement('div');
+  pulse.style.cssText = 'position:absolute;width:20px;height:20px;border:2px solid var(--cyan);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;animation:radarPulseExpand 1s forwards';
+  container.appendChild(pulse);
+  if(!document.getElementById('radarPulseKeyframes')){
+    const style = document.createElement('style');
+    style.id = 'radarPulseKeyframes';
+    style.textContent = '@keyframes radarPulseExpand { to { width: 440px; height: 440px; opacity: 0; border-color: var(--purple); } }';
+    document.head.appendChild(style);
+  }
+  setTimeout(()=> pulse.remove(), 1000);
+  notify('Radar sonar ping broadcasted across multiversal grid');
+}
+
+function fightAction(action){
+  let dmg = 0;
+  let energyCost = 0;
+
+  if(action === 'STRIKE'){ dmg = 10; energyCost = 5; }
+  else if(action === 'ABILITY'){ dmg = 20; energyCost = 12; }
+  else if(action === 'SWARM'){ dmg = 35; energyCost = 20; }
+  else if(action === 'COMBO'){ dmg = 50; energyCost = 35; }
+
+  if(fightEnergy < energyCost){
+    notify('Insufficient energy! Recharge required.');
+    return;
+  }
+
+  fightEnergy = Math.max(0, fightEnergy - energyCost);
+  enemyHp = Math.max(0, enemyHp - dmg);
+  xp += dmg;
+
+  document.getElementById('enemyHpNum').textContent = enemyHp + '%';
+  document.getElementById('hp').textContent = fightHp + '%';
+  document.getElementById('hpbar').style.width = fightHp + '%';
+  document.getElementById('energy').textContent = fightEnergy + '%';
+  document.getElementById('energybar').style.width = fightEnergy + '%';
+  document.getElementById('shieldbar').style.width = fightShield + '%';
+  document.getElementById('xp').textContent = xp;
+  document.getElementById('tbXp').textContent = xp;
+
+  playSfx('success');
+
+  if(enemyHp <= 0){
+    notify('VICTORY! Enemy defeated. +100 XP Bonus!');
+    xp += 100;
+    enemyHp = 100;
+    fightEnergy = 100;
+    document.getElementById('enemyHpNum').textContent = '100%';
+    save();
+    return;
+  }
+
+  setTimeout(()=>{
+    const enemyDmg = Math.floor(Math.random() * 12) + 5;
+    fightHp = Math.max(0, fightHp - enemyDmg);
+    document.getElementById('hp').textContent = fightHp + '%';
+    document.getElementById('hpbar').style.width = fightHp + '%';
+    if(fightHp <= 0){
+      notify('DEFEAT! Emergency medical teleport engaged.');
+      fightHp = 100;
+      fightEnergy = 100;
+    }
+  }, 800);
+}
+
+function triggerLockdown(){
+  document.getElementById('lockdownOverlay').style.display = 'grid';
+  notify('🚨 FACILITY LOCKDOWN ENGAGED!');
+  log('ALERT: Facility Lockdown Triggered');
+}
+
+function deactivateLockdown(){
+  const val = document.getElementById('overridePasscode').value.trim();
+  if(val === '1000' || val.toUpperCase() === 'OVERRIDE'){
+    document.getElementById('lockdownOverlay').style.display = 'none';
+    document.getElementById('overridePasscode').value = '';
+    notify('Lockdown Disengaged');
+    log('System Lockdown Disengaged');
+  } else {
+    alert('INVALID OVERRIDE PASSCODE! (Hint: 1000 or OVERRIDE)');
+  }
+}
+
+function toggleLockdownSiren(){
+  sirenMuted = !sirenMuted;
+  notify(sirenMuted ? 'Lockdown Siren Muted' : 'Lockdown Siren Active');
+}
+
+function handleTerm(e){
+  e.preventDefault();
+  const input = document.getElementById('termInput');
+  const val = input.value.trim();
+  if(!val) return;
+  input.value = '';
+  const out = document.getElementById('termOut');
+  out.insertAdjacentHTML('beforeend', `<div><b>ANAS_OS►</b> ${vEscape(val)}</div>`);
+  const l = val.toLowerCase();
+  let res = 'Command recognized.';
+  if(l === 'help') res = 'Directory: scan, hero, combos, hq, nexus, zords, lockdown, clear, swarm';
+  else if(l.includes('scan')) res = '[SCAN COMPLETE]: Sector 7 clean. Multiverse sync 100%.';
+  else if(l.includes('swarm')) res = '[WATCHFUL SWARM]: Connected to watchful-swarm.lovable.app. All drone nodes synchronized.';
+  else if(l.includes('lockdown')) { triggerLockdown(); res = 'Initiating Lockdown...'; }
+  else if(l === 'clear') { out.innerHTML = ''; return; }
+  out.insertAdjacentHTML('beforeend', `<div style="color:var(--text)">${res}</div>`);
+  out.scrollTop = out.scrollHeight;
+}
+
+function vEscape(s){ return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function sendDispatchMsg(){
+  const target = document.getElementById('dispatchTargetSelect').value;
+  const txt = document.getElementById('dispatchMsgInput').value;
+  if(!txt) return;
+  document.getElementById('dispatchMsgInput').value = '';
+  notify('Transmitted encrypted dispatch to ' + target);
+}
+
+function toggleVoiceOutput(){
+  voiceOutputEnabled = !voiceOutputEnabled;
+  document.getElementById('voiceToggleState').textContent = voiceOutputEnabled ? 'ON' : 'OFF';
+  notify(voiceOutputEnabled ? 'Voice speech enabled' : 'Voice speech muted');
+}
+
+function speakText(text){
+  if(!voiceOutputEnabled || !('speechSynthesis' in window)) return;
+  try { window.speechSynthesis.cancel(); window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); } catch(e) {}
+}
+
+function startVoiceRecognition(){
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRec){ alert('Speech recognition requires Chrome.'); return; }
+  const rec = new SpeechRec();
+  rec.lang = 'en-US';
+  notify('Listening...');
+  rec.onresult = (e)=>{ document.getElementById('chatMsgInput').value = e.results[0][0].transcript; notify('Captured'); };
+  rec.onerror = ()=>{ notify('Mic error'); };
+  rec.start();
+}
+
+function getDMPairKey(user1, user2){
+  const pair = [user1, user2].sort();
+  return `anas_dm_pair_${pair[0]}_${pair[1]}`;
+}
+
+function renderDMSidebar(){
+  const container = document.getElementById('dmSidebarList');
+  if(!container) return;
+  container.innerHTML = HEROES.filter(h => h.id !== currentOperatorId).map(h => `
+    <button class="nav ${activeChatChannel === h.id ? 'active' : ''}" onclick="switchChat('${h.id}', this)">
+      🔒 ${h.name} <span class="muted small" style="display:block">${h.alias}</span>
+    </button>
+  `).join('');
+}
+
+function switchChat(channel, btn){
+  activeChatChannel = channel;
+  document.querySelectorAll('.chat-sidebar .nav').forEach(n=>n.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(channel === 'squad'){
+    document.getElementById('chatTitle').textContent = '👥 Squad General Chat [Shared Team]';
+  } else {
+    const targetHero = HEROES.find(h => h.id === channel);
+    document.getElementById('chatTitle').textContent = `🔒 WhatsApp Chat: ${targetHero ? targetHero.name : channel}`;
+  }
+  renderChatMessages();
+}
+
+function renderChatMessages(){
+  const box = document.getElementById('chatMsgs');
+  let msgs = activeChatChannel === 'squad' ? squadChat : JSON.parse(localStorage[getDMPairKey(currentOperatorId, activeChatChannel)] || '[]');
+  box.innerHTML = msgs.map(m=>`
+    <div class="msg ${m.sender === currentOperator ? 'out' : 'in'}">
+      <div style="font-size:9px;color:var(--cyan);margin-bottom:2px">${m.sender} • ${m.time}</div>
+      <div>${m.text}</div>
+    </div>
+  `).join('') || '<div class="muted small" style="padding:10px">No messages in this chat thread yet. Send a message to start!</div>';
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendChatMessage(e){
+  e.preventDefault();
+  const input = document.getElementById('chatMsgInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value='';
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const newMsg = {sender: currentOperator, senderId: currentOperatorId, text, time};
+  if(activeChatChannel === 'squad'){
+    squadChat.push(newMsg); save();
+  } else {
+    const pairKey = getDMPairKey(currentOperatorId, activeChatChannel);
+    let dmMsgs = JSON.parse(localStorage[pairKey] || '[]');
+    dmMsgs.push(newMsg);
+    localStorage[pairKey] = JSON.stringify(dmMsgs);
+  }
+  renderChatMessages();
+  notify('Message sent');
+  speakText(`${currentOperator} says: ${text}`);
+}
+
+function saveApiKey(){
+  const key = document.getElementById('aiApiKeyInput').value.trim();
+  if(!key){ notify('Please enter a valid API key'); return; }
+  localStorage.anasGeminiApiKey = key;
+  notify('Gemini API Key saved successfully');
+}
+
+function sendAiPreset(query){
+  document.getElementById('aiChatInput').value = query;
+  handleAiSubmit(new Event('submit'));
+}
+
+function clearAiChat(){
+  const box = document.getElementById('aiMessagesBox');
+  box.innerHTML = `
+    <div class="ai-msg assistant">
+      <div class="ai-avatar" style="background:#22d3ee22;color:var(--cyan)">🤖</div>
+      <div>Chat history cleared. How can I assist you further, Anas?</div>
+    </div>
+  `;
+  notify('AI chat cleared');
+}
+
+async function handleAiSubmit(e){
+  e.preventDefault();
+  const input = document.getElementById('aiChatInput');
+  const q = input.value.trim();
+  if(!q) return;
+  input.value = '';
+
+  const box = document.getElementById('aiMessagesBox');
+  box.insertAdjacentHTML('beforeend', `
+    <div class="ai-msg user">
+      <div>${escapeHtml(q)}</div>
+      <div class="ai-avatar" style="background:#38bdf822;color:var(--blue)">👤</div>
+    </div>
+  `);
+  box.scrollTop = box.scrollHeight;
+
+  const lq = q.toLowerCase();
+  let osActionTriggered = false;
+  let osReply = "";
+
+  if(lq.includes('open radar') || lq.includes('radar map')){
+    show('radar'); osReply = "Executing OS Action: Opened Radar & Multiverse Map."; osActionTriggered = true;
+  } else if(lq.includes('lockdown') || lq.includes('trigger lockdown')){
+    triggerLockdown(); osReply = "Executing OS Action: Triggered facility lockdown!"; osActionTriggered = true;
+  } else if(lq.includes('zord') || lq.includes('fleet')){
+    show('zords'); osReply = "Executing OS Action: Opened Zord Fleet catalog."; osActionTriggered = true;
+  } else if(lq.includes('add task') || lq.includes('create task')){
+    const taskName = q.replace(/add task|create task/gi, '').trim() || 'New AI Task';
+    tasks.push(taskName); save(); renderTasks();
+    osReply = `Executing OS Action: Added task "${taskName}" to Task Manager.`; osActionTriggered = true;
+  } else if(lq.includes('fight hud') || lq.includes('combat')){
+    show('fight'); osReply = "Executing OS Action: Opened Hero Fight HUD + Watchful Swarm."; osActionTriggered = true;
+  }
+
+  if(osActionTriggered){
+    box.insertAdjacentHTML('beforeend', `
+      <div class="ai-msg assistant">
+        <div class="ai-avatar" style="background:#34d39922;color:var(--green)">⚡</div>
+        <div>${osReply}</div>
+      </div>
+    `);
+    box.scrollTop = box.scrollHeight;
+    speakText(osReply);
+    return;
+  }
+
+  const typingId = 'typing_' + Date.now();
+  box.insertAdjacentHTML('beforeend', `
+    <div class="ai-msg assistant" id="${typingId}">
+      <div class="ai-avatar" style="background:#22d3ee22;color:var(--cyan)">🤖</div>
+      <div class="muted small">Contacting Gemini 3.8 Flash API...</div>
+    </div>
+  `);
+  box.scrollTop = box.scrollHeight;
+
+  const apiKey = localStorage.anasGeminiApiKey || document.getElementById('aiApiKeyInput').value.trim();
+  if(!apiKey){
+    document.getElementById(typingId)?.remove();
+    box.insertAdjacentHTML('beforeend', `
+      <div class="ai-msg assistant">
+        <div class="ai-avatar" style="background:#fb4b5f22;color:var(--red)">⚠️</div>
+        <div><b>API Key Missing:</b> Please configure your Gemini API Key in <b>Settings</b>.</div>
+      </div>
+    `);
+    box.scrollTop = box.scrollHeight;
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: "You are ANAS OS AI Assistant for Anas Alroz. Answer concisely: " + q }] }] })
+    });
+    const data = await res.json();
+    document.getElementById(typingId)?.remove();
+    let reply = "No response generated from Gemini API.";
+    if(data.candidates && data.candidates[0]?.content?.parts?.[0]?.text){
+      reply = data.candidates[0].content.parts[0].text;
+    } else if(data.error){
+      reply = "API Error: " + data.error.message;
+    }
+    box.insertAdjacentHTML('beforeend', `
+      <div class="ai-msg assistant">
+        <div class="ai-avatar" style="background:#22d3ee22;color:var(--cyan)">🤖</div>
+        <div>${escapeHtml(reply)}</div>
+      </div>
+    `);
+    box.scrollTop = box.scrollHeight;
+    speakText(reply.replace(/<[^>]*>/g, ''));
+  } catch(err) {
+    document.getElementById(typingId)?.remove();
+    box.insertAdjacentHTML('beforeend', `
+      <div class="ai-msg assistant">
+        <div class="ai-avatar" style="background:#fb4b5f22;color:var(--red)">⚠️</div>
+        <div><b>Connection Error:</b> Failed to reach Gemini API endpoint.</div>
+      </div>
+    `);
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+function renderPlugins(){
+  document.getElementById('pluginList').innerHTML=plugins.map((p,i)=>`<div class="card"><div class="panelhead"><b>🧩 ${p.name}</b><span class="success">ACTIVE</span></div><button class="danger" onclick="plugins.splice(${i},1);save();renderPlugins()">REMOVE</button></div>`).join('');
+}
+
+function installPlugin(){
+  const name=prompt('Plugin name:');
+  if(!name)return;
+  plugins.push({name,cat:'Utilities',status:true});
+  save();renderPlugins();notify('Plugin installed');
+}
+
+function renderSchool(){
+  document.getElementById('schoolList').innerHTML = schoolSubjects.map((s, i)=>`
+    <div class="card">
+      <div class="panelhead"><b>${s.name}</b><button class="danger" style="padding:2px 6px;font-size:10px" onclick="schoolSubjects.splice(${i},1);save();renderSchool()">✕</button></div>
+      <p class="small muted">${s.desc}</p>
+      <div class="meter" style="margin-top:10px"><i style="width:${s.progress}%"></i></div>
+    </div>
+  `).join('') || '<div class="card">No subjects.</div>';
+}
+
+function addSchoolSubject(){
+  const name = prompt('Subject name:');
+  if(!name) return;
+  schoolSubjects.push({name, desc:'Active study', progress:75});
+  save(); renderSchool(); notify('Added subject');
+}
+
+function renderProjects(){
+  document.getElementById('projectList').innerHTML = projectsList.map((p, i)=>`
+    <div class="card">
+      <div class="panelhead"><b>${p.name}</b><button class="danger" style="padding:2px 6px;font-size:10px" onclick="projectsList.splice(${i},1);save();renderProjects()">✕</button></div>
+      <p class="small muted">${p.desc}</p>
+      <div class="meter" style="margin-top:10px"><i style="width:${p.prog}%"></i></div>
+    </div>
+  `).join('') || '<div class="card">No projects.</div>';
+}
+
+function addProject(){
+  const name = prompt('Project title:');
+  if(!name) return;
+  projectsList.push({name, desc:'Building', prog:50});
+  save(); renderProjects(); notify('Created project');
+}
+
+function previewCode(){ document.getElementById('preview').srcdoc = document.getElementById('code').value; }
+function saveDevCode(){ localStorage.anasDevCode = document.getElementById('code').value; notify('Saved script'); }
+
+function initCreatorCanvas(){
+  const canvas = document.getElementById('creatorCanvas');
+  const ctx = canvas.getContext('2d');
+  let painting = false;
+  ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  canvas.onmousedown = (e)=>{ painting = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); };
+  canvas.onmouseup = ()=> { painting = false; };
+  canvas.onmousemove = (e)=>{ if(!painting) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); };
+}
+
+function clearCanvas(){
+  const canvas = document.getElementById('creatorCanvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  notify('Canvas cleared');
+}
+
+function renderPodcast(){
+  document.getElementById('podcastIdeas').innerHTML = podcastData.ideas.map((item, i)=>`<div class="row small"><span>💡 ${item}</span><button class="danger" style="padding:2px 5px;font-size:9px" onclick="podcastData.ideas.splice(${i},1);save();renderPodcast()">✕</button></div>`).join('') || '<div class="muted small">No ideas.</div>';
+  document.getElementById('podcastDrafts').innerHTML = podcastData.drafts.map((item, i)=>`<div class="row small"><span>📝 ${item}</span><button class="danger" style="padding:2px 5px;font-size:9px" onclick="podcastData.drafts.splice(${i},1);save();renderPodcast()">✕</button></div>`).join('') || '<div class="muted small">No drafts.</div>';
+  document.getElementById('podcastPublished').innerHTML = podcastData.published.map((item)=>`<div class="row small"><span>🎙️ ${item}</span></div>`).join('') || '<div class="muted small">None.</div>';
+}
+
+function addPodcastIdea(){
+  const idea = prompt('Podcast idea/topic:');
+  if(!idea) return;
+  podcastData.ideas.push(idea);
+  save(); renderPodcast(); notify('Added idea');
+}
+
+function renderTasks(){
+  document.getElementById('taskList').innerHTML=tasks.map((t,i)=>`<div class="row"><span>📋 ${t}</span><button onclick="completeTask(${i})">COMPLETE</button></div>`).join('');
+  document.getElementById('statTasks').textContent=tasks.length;
+}
+
+function addTask(){
+  const t=prompt('Task name:');
+  if(t){tasks.push(t);save();renderTasks();log('Task created: '+t)}
+}
+
+function completeTask(i){
+  const t=tasks.splice(i,1)[0];
+  xp+=20;save();renderTasks();
+  document.getElementById('xp').textContent=xp; document.getElementById('tbXp').textContent=xp;
+  notify('+20 XP • '+t);
+}
+
+function renderCalendarEvents(){
+  document.getElementById('calEventsList').innerHTML = calendarEvents.map((ev, i)=>`
+    <div class="row">
+      <div><b>📅 ${ev.title}</b><div class="small muted">${ev.date} • <span style="color:var(--cyan)">${ev.type}</span></div></div>
+      <button class="danger" onclick="calendarEvents.splice(${i},1);save();renderCalendarEvents()">✕</button>
+    </div>
+  `).join('') || '<div class="muted small">No events.</div>';
+}
+
+function addCalendar(){
+  const date = document.getElementById('calDate').value;
+  const title = document.getElementById('calEvent').value;
+  const type = document.getElementById('calType').value;
+  if(!date || !title) { notify('Enter date and title'); return; }
+  calendarEvents.push({date, title, type});
+  save(); renderCalendarEvents(); notify('Event scheduled');
+}
+
+function addCalendarEventModal(){ show('calendar'); document.getElementById('calEvent').focus(); }
+
+function renderNotes(){
+  document.getElementById('noteList').innerHTML=notes.map((n,i)=>`<div class="card"><div class="panelhead"><b>${n.title}</b><button onclick="notes.splice(${i},1);save();renderNotes()">×</button></div><div class="small muted">${n.body}</div></div>`).join('')||'<div class="card">No notes.</div>';
+}
+
+function addNote(){
+  const title=prompt('Note title:');
+  if(!title)return;
+  const body=prompt('Note text:')||'';
+  notes.unshift({title,body});save();renderNotes();
+}
+
+function newMission(){
+  const n=prompt('Mission name:','Multiverse Signal');
+  if(!n)return;
+  document.getElementById('missionList').insertAdjacentHTML('afterbegin',`<div class="card"><div class="panelhead"><b>${n}</b><span class="sim">SIMULATION</span></div><button onclick="notify('Mission launched');xp+=50;document.getElementById('xp').textContent=xp">START</button></div>`);
+  notify('Mission created');
+}
+
+function renderMissions(){
+  document.getElementById('missionList').innerHTML=`
+    <div class="card"><div class="panelhead"><b>Multiverse Overdrive</b><span class="sim">ULTIMATE</span></div><p class="muted small">Full squad mission.</p><button onclick="show('fight')">OPEN FIGHT HUD</button></div>
+  `;
+}
+
+function renderLogs(){document.getElementById('logsList').innerHTML=logs.map(l=>`<div class="row small"><span>${l.msg}</span><span class="muted">${l.t}</span></div>`).join('')||'<div class="row">No activity.</div>'}
+function renderActivity(){document.getElementById('activity').innerHTML=logs.slice(0,6).map(l=>`<div class="row small"><span>${l.msg}</span><span class="muted">${l.t}</span></div>`).join('')}
+function clearLogs(){logs=[];save();renderLogs();renderActivity()}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function calc(){const x=prompt('Expression (e.g. 25*4):');if(!x)return;try{notify('Result: '+Function('"use strict";return ('+x+')')())}catch{notify('Invalid')}}
+function uuid(){notify(crypto.randomUUID())}
+function timeTool(){notify('Timestamp: '+Math.floor(Date.now()/1000))}
+function setAccent(v){document.documentElement.style.setProperty('--cyan',v);localStorage.anasAccent=v;}
+function exportData(){const d={tasks,notes,logs,calendarEvents,squadChat,xp,schoolSubjects,projectsList,podcastData};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='anas-os-backup.json';a.click();notify('Exported')}
+function resetData(){if(confirm('Reset OS data?')){localStorage.clear();location.reload()}}
+
+function openHeroWindow(){
+  document.getElementById('heroModal').classList.add('show');
+  document.getElementById('heroWindowBody').innerHTML=`
+    <div class="panelhead"><div><h1 class="title">🦸 HERO HQ WINDOW</h1></div><button onclick="closeModal()">✕</button></div>
+    <div class="grid g3">${HEROES.map(h=>`<div class="card" style="border-color:${h.color}55"><b style="color:${h.color}">${h.name}</b><div class="small muted">${h.alias}</div><button onclick="selectHero('${h.id}');show('fight');closeModal()">FIGHT HUD</button></div>`).join('')}</div>
+  `;
+}
+function closeModal(){document.getElementById('heroModal').classList.remove('show')}
+
+function initApp(){
+  document.getElementById('cores').textContent=navigator.hardwareConcurrency||'N/A';
+  document.getElementById('screen').textContent=innerWidth+'×'+innerHeight;
+  document.getElementById('browser').textContent=navigator.userAgentData?.brands?.[0]?.brand||navigator.appName;
+  document.getElementById('display').textContent=screen.width+'×'+screen.height;
+  document.getElementById('online').textContent=navigator.onLine?'ONLINE':'OFFLINE';
+  
+  if(localStorage.anasDevCode) document.getElementById('code').value = localStorage.anasDevCode;
+  if(localStorage.anasGeminiApiKey) document.getElementById('aiApiKeyInput').value = localStorage.anasGeminiApiKey;
+  previewCode();
+  initCreatorCanvas();
+  renderNexusFloors();
+
+  setInterval(()=>{
+    document.getElementById('clock').textContent = new Date().toLocaleString();
+    document.getElementById('tbClock').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }, 1000);
+
+  renderDMSidebar();
+  switchChat('squad');
+
+  renderHeroes();renderZordFleet();renderSuits();renderTasks();renderNotes();renderMissions();renderPlugins();renderCalendarEvents();renderSchool();renderProjects();renderPodcast();renderLogs();renderActivity();
+  document.getElementById('xp').textContent=xp; document.getElementById('tbXp').textContent=xp;
+  if(localStorage.anasAccent)setAccent(localStorage.anasAccent);
+}
+
+window.addEventListener('DOMContentLoaded',()=>fillHeroCredentials());
+</script>
+</body>
+</html>
