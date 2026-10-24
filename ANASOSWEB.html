@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#06111f">
 <title>ANAS OS WEB v1018 — Zenith Nexus & Watchful Swarm</title>
+<!-- Firebase Realtime Database SDKs for Live Squad Sync -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <style>
 :root{--bg:#030712;--panel:#07111fff;--panel2:#0b1728;--line:#15304a;--cyan:#22d3ee;--blue:#38bdf8;--purple:#a78bfa;--green:#34d399;--red:#fb4b5f;--pink:#f472b6;--gold:#facc15;--text:#e5f3ff;--muted:#7f9ab2;--shadow:0 12px 40px #0008}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:radial-gradient(circle at 70% 10%,#0c2740 0,#030712 42%,#010409 100%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
@@ -99,7 +102,7 @@ main{overflow:auto;padding:18px}
 .lockdown-box{width:min(580px,92vw);background:#0b0204;border:2px solid var(--red);border-radius:12px;padding:24px;text-align:center;box-shadow:0 0 60px #fb4b5f88}
 
 input,select,textarea{width:100%;background:#030a12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
-.toast{position:fixed;right:18px;bottom:64px;z-index:9999;background:#071521ee;border:1px solid var(--cyan);padding:12px 16px;border-radius:9px;box-shadow:0 0 30px #000;display:none}.toast.show{display:block;animation:fade .2s}
+.toast{position:fixed;right:18px;bottom:64px;z-index:9999;background:#071521ee;border:1px solid var(--cyan);padding:12px 16px;border-radius:99px;box-shadow:0 0 30px #000;display:none}.toast.show{display:block;animation:fade .2s}
 .modal{position:fixed;inset:0;background:#0009;z-index:9700;display:none;place-items:center;padding:20px}.modal.show{display:grid}
 .modalbox{width:min(940px,96vw);max-height:90vh;overflow:auto;background:#06101c;border:1px solid #24506b;border-radius:14px;box-shadow:0 30px 100px #000}
 .modalhead{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
@@ -175,6 +178,7 @@ input,select,textarea{width:100%;background:#030a12;color:var(--text);border:1px
 <button class="nav" onclick="show('fight',this)">⚔️ <span class="txt">Fight HUD + Swarm</span></button>
 <button class="nav" onclick="show('hq',this)">🏢 <span class="txt">HQ Control</span></button>
 <button class="nav" onclick="show('missions',this)">🎯 <span class="txt">Missions</span></button>
+<button class="nav" id="adminNavBtn" style="display:none" onclick="show('admin',this)">👑 <span class="txt">Admin Command</span></button>
 <div class="section">SYSTEM</div>
 <button class="nav" onclick="show('plugins',this)">🧩 <span class="txt">Plugins</span></button>
 <button class="nav" onclick="show('devices',this)">📱 <span class="txt">Devices</span></button>
@@ -511,7 +515,68 @@ Type 'help' to inspect the comprehensive command directory.<br>
 
   <div class="card" style="display:flex;flex-direction:column;height:100%;overflow:hidden">
     <div class="panelhead"><b>🐝 WATCHFUL SWARM EMBEDDED FEED</b><a href="https://watchful-swarm.lovable.app" target="_blank" style="color:var(--cyan);font-size:10px;text-decoration:none">[OPEN LINK]</a></div>
-    <iframe src="https://watchful-swarm.lovable.app" style="width:100%;flex:1;background:#030812;border:1px solid var(--line);border-radius:8px"></iframe>
+    <!-- Camera, microphone and display-capture permissions allowed -->
+    <iframe src="https://watchful-swarm.lovable.app" allow="camera; microphone; fullscreen; display-capture" style="width:100%;flex:1;background:#030812;border:1px solid var(--line);border-radius:8px"></iframe>
+  </div>
+</div>
+</section>
+
+<!-- ADMIN COMMAND PANEL -->
+<section id="admin" class="view">
+<div class="panelhead">
+  <div><h1 class="title">👑 ADMIN COMMAND CENTER</h1><div class="sub">Level 3 Clearance // User & Fleet Control Matrix</div></div>
+  <span class="sim" style="color:var(--gold)">ADMIN SECURE</span>
+</div>
+<div class="grid g2" style="margin-bottom:14px">
+  <div class="card">
+    <div class="panelhead"><b>➕ CREATE / REGISTER NEW USER</b></div>
+    <input id="newUserName" placeholder="Full Operator Name (e.g. Sarah)" style="margin-bottom:8px">
+    <input id="newUserAlias" placeholder="Hero Alias (e.g. Nova Spark)" style="margin-bottom:8px">
+    <select id="newUserLevel" style="margin-bottom:8px">
+      <option value="1">Level 1: Guest (Most Restricted)</option>
+      <option value="2">Level 2: Regular Operator</option>
+      <option value="3">Level 3: Admin Master</option>
+    </select>
+    <select id="newUserSuit" style="margin-bottom:8px">
+      <option value="Zenith Crimson Suit">Zenith Crimson Suit</option>
+      <option value="Blue Vortex Suit">Blue Vortex Suit</option>
+      <option value="Flame Phantom Suit">Flame Phantom Suit</option>
+      <option value="Starlight Pink Suit">Starlight Pink Suit</option>
+      <option value="Emerald Smash Suit">Emerald Smash Suit</option>
+      <option value="Shadow Sentinel Suit">Shadow Sentinel Suit</option>
+      <option value="Solar Armor Suit">Solar Armor Suit</option>
+      <option value="Gamma Titan Suit">Gamma Titan Suit</option>
+    </select>
+    <input id="newUserWeapon" placeholder="Default Weapon / Sword (e.g. Plasma Blade)" style="margin-bottom:12px">
+    <button class="primary" style="width:100%" onclick="adminCreateUser()">REGISTER NEW OPERATOR</button>
+  </div>
+
+  <div class="card">
+    <div class="panelhead"><b>🤖 FORGE NEW ZORD</b></div>
+    <input id="newZordName" placeholder="Zord Name (e.g. Solar Falcon Zord)" style="margin-bottom:8px">
+    <select id="newZordCat" style="margin-bottom:8px">
+      <option value="core">Core Zord</option>
+      <option value="advanced">Advanced Zord</option>
+      <option value="restricted">Restricted Zord</option>
+      <option value="expansion">Expansion Zord</option>
+    </select>
+    <input id="newZordHero" placeholder="Assigned Hero / Squad" value="Multiverse Taskforce" style="margin-bottom:8px">
+    <input id="newZordColor" placeholder="Color Hex (e.g. #facc15)" value="#facc15" style="margin-bottom:8px">
+    <input id="newZordDesc" placeholder="Description capabilities" style="margin-bottom:12px">
+    <button class="primary" style="width:100%" onclick="adminAddZord()">DEPLOY NEW ZORD TO FLEET</button>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <div class="panelhead"><b>👥 SQUAD USERS & PERMISSIONS MANAGEMENT</b></div>
+    <div id="adminUserList" class="list" style="max-height:220px;overflow-y:auto"></div>
+  </div>
+  <div class="card">
+    <div class="panelhead"><b>📢 BROADCAST PUSH NOTIFICATION / UPDATE</b></div>
+    <p class="small muted">Send a real-time notification popup banner to all connected squad devices instantly.</p>
+    <textarea id="broadcastMsgInput" placeholder="Type global update announcement..." style="height:90px;margin-bottom:10px"></textarea>
+    <button class="primary" style="width:100%" onclick="adminSendBroadcast()">BROADCAST PUSH NOTIFICATION 📡</button>
   </div>
 </div>
 </section>
@@ -752,16 +817,91 @@ Type 'help' to inspect the comprehensive command directory.<br>
 <div id="heroModal" class="modal"><div class="modalbox"><div class="modalhead"><b>🦸 ANAS OS — HERO HQ WINDOW</b><button onclick="closeModal()">✕</button></div><div class="modalbody" id="heroWindowBody"></div></div></div>
 
 <script>
+// --- FIREBASE CLOUD DATABASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDaQSQaRSIKQANkWR8g41NHW75bqewWu3s",
+  authDomain: "anas-os-org.firebaseapp.com",
+  databaseURL: "https://anas-os-org-default-rtdb.firebaseio.com",
+  projectId: "anas-os-org",
+  storageBucket: "anas-os-org.firebasestorage.app",
+  messagingSenderId: "129288718925",
+  appId: "1:129288718925:web:42b43ddd4f2305a4666a04",
+  measurementId: "G-Y79CKB8JQH"
+};
+
+let db = null;
+try {
+  if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    
+    // Listen for real-time Squad Chat updates from Firebase Cloud Database
+    db.ref('squadChat').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        squadChat = data;
+        renderChatMessages();
+      }
+    });
+
+    // Listen for global lockdown broadcast state
+    db.ref('lockdownState').on('value', (snapshot) => {
+      const state = snapshot.val();
+      if (state && state.active) {
+        document.getElementById('lockdownOverlay').style.display = 'grid';
+        notify(`🚨 GLOBAL LOCKDOWN BROADCASTED BY ${state.triggeredBy || 'Admin'}!`);
+      } else if (state && !state.active) {
+        document.getElementById('lockdownOverlay').style.display = 'none';
+      }
+    });
+
+    // Listen for system updates & push notification announcements
+    db.ref('systemBroadcast').on('value', (snapshot) => {
+      const msg = snapshot.val();
+      if (msg) {
+        notify(`📢 ANAS OS PUSH ALERT: ${msg}`);
+      }
+    });
+
+    // Listen for custom Zords added by Admins
+    db.ref('customZords').on('value', (snapshot) => {
+      const zordsData = snapshot.val();
+      if (zordsData) {
+        ZORDS.length = 5; // keep base core zords
+        ZORDS.push(...zordsData);
+        renderZordFleet();
+      }
+    });
+
+    // Listen for custom users / permissions in real-time across all devices (Ahmed's tablet, etc.)
+    db.ref('customUsers').on('value', (snapshot) => {
+      const usersData = snapshot.val();
+      if (usersData) {
+        squadUsersDb = usersData;
+        localStorage.anasSquadUsers = JSON.stringify(squadUsersDb);
+        renderAdminPanelUsers();
+        renderHeroes();
+        renderHeroInspectorBar();
+      }
+    });
+  }
+} catch(e) {
+  console.log("Firebase initialized in fallback mode.", e);
+}
+
 const HEROES = [
-  { id: 'anas', name: 'Anas Alroz', alias: 'Crimson Wing / Phantom King', color: '#fb4b5f', identity: 'Student & Tech, Code Architect', role: 'Team Leader', theme: 'Zenith', weapon: 'Fire Whip', weapons: ['Fire Whip', 'Crimson Chakram', 'Code Rifts', 'Multiversal Chains', 'Shadow Teleportation'] },
-  { id: 'mohamad', name: 'Mohamad Albadri', alias: 'Blue Vortex', color: '#38bdf8', identity: 'Student & Tech', role: 'Tech Genius', theme: 'Blue', weapon: 'Volt Gauntlets', weapons: ['Volt Gauntlets', 'Tesla Discs', 'Electric Shield'] },
-  { id: 'emad', name: 'Emad Albadri', alias: 'Flame Phantom', color: '#ef4444', identity: 'Student & Creative', role: 'Creative Vanguard', theme: 'Red', weapon: 'Phantom Blade', weapons: ['Phantom Blade', 'Phase Dash', 'Flame Aura'] },
-  { id: 'leen', name: 'Leen', alias: 'Striking Pink', color: '#f472b6', identity: 'Designer', role: 'Tactical Designer', theme: 'Pink', weapon: 'Starlight Whip', weapons: ['Starlight Whip', 'Hard-Light Prism', 'Light Barrier'] },
-  { id: 'abdulla', name: 'Abdulla', alias: 'Smashing One', color: '#34d399', identity: 'Artist', role: 'Tank', theme: 'Green', weapon: 'Impact Gauntlets', weapons: ['Impact Gauntlets', 'Seismic Slam', 'Emerald Hammer'] },
-  { id: 'rydar', name: 'Rydar', alias: 'Shadow Sentinel', color: '#a78bfa', identity: 'Scout', role: 'Stealth', theme: 'Purple', weapon: 'Shadow Daggers', weapons: ['Shadow Daggers', 'Cloak Matrix', 'Stealth Veil'] },
-  { id: 'ziad', name: 'Ziad', alias: 'Solar Blaze', color: '#facc15', identity: 'Artillery', role: 'Support', theme: 'Gold', weapon: 'Solar Cannon', weapons: ['Solar Cannon', 'Blaze Array'] },
-  { id: 'hulk', name: 'Hulk', alias: 'Gamma Titan', color: '#22c55e', identity: 'Brute Force', role: 'Heavy Brawler', theme: 'Green', weapon: 'Gamma Smash Fists', weapons: ['Gamma Smash Fists', 'Shockwave Clap', 'Unstoppable Surge'] }
+  { id: 'anas', name: 'Anas Alroz', alias: 'Crimson Wing / Phantom King', color: '#fb4b5f', identity: 'Student & Tech, Code Architect', role: 'Team Leader', theme: 'Zenith', weapon: 'Fire Whip', weapons: ['Fire Whip', 'Crimson Chakram', 'Code Rifts', 'Multiversal Chains', 'Shadow Teleportation'], level: 3 },
+  { id: 'mohamad', name: 'Mohamad Albadri', alias: 'Blue Vortex', color: '#38bdf8', identity: 'Student & Tech', role: 'Tech Genius', theme: 'Blue', weapon: 'Volt Gauntlets', weapons: ['Volt Gauntlets', 'Tesla Discs', 'Electric Shield'], level: 3 },
+  { id: 'emad', name: 'Emad Albadri', alias: 'Flame Phantom', color: '#ef4444', identity: 'Student & Creative', role: 'Creative Vanguard', theme: 'Red', weapon: 'Phantom Blade', weapons: ['Phantom Blade', 'Phase Dash', 'Flame Aura'], level: 2 },
+  { id: 'leen', name: 'Leen', alias: 'Striking Pink', color: '#f472b6', identity: 'Designer', role: 'Tactical Designer', theme: 'Pink', weapon: 'Starlight Whip', weapons: ['Starlight Whip', 'Hard-Light Prism', 'Light Barrier'], level: 2 },
+  { id: 'abdulla', name: 'Abdulla', alias: 'Smashing One', color: '#34d399', identity: 'Artist', role: 'Tank', theme: 'Green', weapon: 'Impact Gauntlets', weapons: ['Impact Gauntlets', 'Seismic Slam', 'Emerald Hammer'], level: 2 },
+  { id: 'rydar', name: 'Rydar', alias: 'Shadow Sentinel', color: '#a78bfa', identity: 'Scout', role: 'Stealth', theme: 'Purple', weapon: 'Shadow Daggers', weapons: ['Shadow Daggers', 'Cloak Matrix', 'Stealth Veil'], level: 2 },
+  { id: 'ziad', name: 'Ziad', alias: 'Solar Blaze', color: '#facc15', identity: 'Artillery', role: 'Support', theme: 'Gold', weapon: 'Solar Cannon', weapons: ['Solar Cannon', 'Blaze Array'], level: 2 },
+  { id: 'hulk', name: 'Hulk', alias: 'Gamma Titan', color: '#22c55e', identity: 'Brute Force', role: 'Heavy Brawler', theme: 'Green', weapon: 'Gamma Smash Fists', weapons: ['Gamma Smash Fists', 'Shockwave Clap', 'Unstoppable Surge'], level: 2 }
 ];
+
+let squadUsersDb = JSON.parse(localStorage.anasSquadUsers || JSON.stringify(HEROES));
+let customZordsList = JSON.parse(localStorage.anasCustomZords || '[]');
 
 const ZORDS = [
   { id: 1, name: 'Crimson Phoenix Zord', cat: 'core', hero: 'Anas Alroz', color: '#fb4b5f', desc: 'Zenith mobility and cosmic flame wings.' },
@@ -773,6 +913,7 @@ const ZORDS = [
 for(let i=6; i<=60; i++){
   ZORDS.push({ id: i, name: `Expansion Zord Mk-${i}`, cat: 'expansion', hero: 'Multiverse Taskforce', color: i%2===0?'#22d3ee':'#a78bfa', desc: `Automated tactical support unit.` });
 }
+ZORDS.push(...customZordsList);
 
 const NEXUS_SECTORS = {
   A: { name: 'Sector A — Surface Operations and Command', floors: ['01 — Zenith Arrival Terminal: Landing pads & visitor screening.', '02 — Strategic Command Center: Mission planning & operational briefings.', '03 — ANAS OS Intelligence Core: AI operations & Zord monitoring.', '04 — Council Chamber: Team meetings & alliance negotiations.', '05 — Mission Archives: Historical mission records & debriefings.', '06 — Communications Center: Secure fictional team communications.', '07 — Multiverse Mapping Center: Dimensional maps & anomaly tracking.', '08 — Operations Planning Wing: Mission schedules & resource allocation.', '09 — Security Administration: Access classifications & authorized personnel.', '10 — Emergency Coordination Center: Evacuation planning & facility recovery.'] },
@@ -811,6 +952,7 @@ let podcastData = JSON.parse(localStorage.anasPodcast || '{"ideas":["Science Fai
 
 let currentOperatorId = 'anas';
 let currentOperator = 'Anas Alroz';
+let currentUserLevel = 3; // 1: Guest, 2: Regular, 3: Admin
 let activeChatChannel = 'squad';
 let xp=Number(localStorage.anasXP||500);
 let voiceOutputEnabled = true;
@@ -856,7 +998,15 @@ function save(){
   localStorage.anasSchool=JSON.stringify(schoolSubjects);
   localStorage.anasProjects=JSON.stringify(projectsList);
   localStorage.anasPodcast=JSON.stringify(podcastData);
+  localStorage.anasSquadUsers=JSON.stringify(squadUsersDb);
+  localStorage.anasCustomZords=JSON.stringify(customZordsList);
   localStorage.anasXP=xp;
+
+  if(db) {
+    db.ref('squadChat').set(squadChat);
+    db.ref('customUsers').set(squadUsersDb);
+    db.ref('customZords').set(customZordsList);
+  }
 }
 
 function log(msg){logs.unshift({t:new Date().toLocaleTimeString(),msg});logs=logs.slice(0,80);save();renderLogs();renderActivity()}
@@ -880,34 +1030,42 @@ function show(id,btn){
 
 function fillHeroCredentials(){
   const sel = document.getElementById('heroSelect').value;
-  const heroData = {
-    anas: {id: 'anas', name: 'Anas Alroz', pass: 'CrimsonWing2026!'},
-    mohamad: {id: 'mohamad', name: 'Mohamad Albadri', pass: 'BlueVortex2026!'},
-    emad: {id: 'emad', name: 'Emad Albadri', pass: 'FlamePhantom2026!'},
-    leen: {id: 'leen', name: 'Leen', pass: 'StarlightPink2026!'},
-    abdulla: {id: 'abdulla', name: 'Abdulla', pass: 'EmeraldSmash2026!'},
-    rydar: {id: 'rydar', name: 'Rydar', pass: 'ShadowSentinel2026!'},
-    ziad: {id: 'ziad', name: 'Ziad', pass: 'SolarBlaze2026!'},
-    hulk: {id: 'hulk', name: 'Hulk', pass: 'GammaTitan2026!'}
-  };
-  const d = heroData[sel] || heroData.anas;
-  document.getElementById('usernameInput').value = d.name;
-  document.getElementById('passInput').value = d.pass;
-  currentOperatorId = d.id;
-  currentOperator = d.name;
+  const userObj = squadUsersDb.find(u => u.id === sel) || HEROES[0];
+  document.getElementById('usernameInput').value = userObj.name;
+  document.getElementById('passInput').value = userObj.pass || 'CrimsonWing2026!';
+  currentOperatorId = userObj.id;
+  currentOperator = userObj.name;
+  currentUserLevel = userObj.level || (sel === 'anas' || sel === 'mohamad' ? 3 : 2);
 }
 
 function handleLogin(){
   playSfx('success');
   const sel = document.getElementById('heroSelect').value;
-  currentOperatorId = sel;
-  const user = document.getElementById('usernameInput').value || 'Anas Alroz';
-  currentOperator = user;
-  document.getElementById('headerUser').textContent = user.toUpperCase();
-  document.getElementById('currentOpBadge').textContent = user;
+  const userObj = squadUsersDb.find(u => u.id === sel) || HEROES[0];
+  
+  if(userObj.restricted) {
+    alert('ACCESS DENIED: This user account has been restricted by an Administrator.');
+    return;
+  }
+
+  currentOperatorId = userObj.id;
+  currentOperator = userObj.name;
+  currentUserLevel = userObj.level || (sel === 'anas' || sel === 'mohamad' ? 3 : 2);
+
+  document.getElementById('headerUser').textContent = currentOperator.toUpperCase();
+  document.getElementById('currentOpBadge').textContent = currentOperator;
+  
+  // Show or hide Admin Nav Button based on level 3 clearance
+  const adminBtn = document.getElementById('adminNavBtn');
+  if(currentUserLevel === 3) {
+    adminBtn.style.display = 'flex';
+  } else {
+    adminBtn.style.display = 'none';
+  }
+
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('boot').style.display='grid';
-  notify('Authenticated operator: ' + user);
+  notify('Authenticated operator: ' + currentOperator + ' (Level ' + currentUserLevel + ')');
   setTimeout(()=>{
     document.getElementById('boot').style.display='none';
     document.getElementById('app').style.display='grid';
@@ -931,12 +1089,12 @@ function toggleStartMenu(){
 }
 
 function renderHeroes(){
-  document.getElementById('heroGrid').innerHTML=HEROES.map(h=>`
-    <div class="card hero-card" style="--accent:${h.color};cursor:pointer" onclick="inspectHero('${h.id}')">
+  document.getElementById('heroGrid').innerHTML=squadUsersDb.map(h=>`
+    <div class="card hero-card" style="--accent:${h.color || '#22d3ee'};cursor:pointer" onclick="inspectHero('${h.id}')">
       <div class="hero-name">${h.name}</div>
-      <div style="color:${h.color};font-weight:800">${h.alias}</div>
-      <span class="tag" style="color:${h.color}">ROLE: ${h.role}</span>
-      <p class="small muted" style="margin-top:6px"><b>Weapon:</b> ${h.weapon}</p>
+      <div style="color:${h.color || '#22d3ee'};font-weight:800">${h.alias || h.role}</div>
+      <span class="tag" style="color:${h.color || '#22d3ee'}">LEVEL ${h.level || 2} • ${h.role || 'Operator'}</span>
+      <p class="small muted" style="margin-top:6px"><b>Weapon:</b> ${h.weapon || 'Standard'}</p>
       <div class="row small" style="margin-top:6px"><span>Inspect</span><button onclick="event.stopPropagation();selectHero('${h.id}')">SELECT</button></div>
     </div>
   `).join('');
@@ -946,28 +1104,28 @@ function renderHeroes(){
 function renderHeroInspectorBar(){
   const topBar = document.getElementById('heroInspectorBar');
   if(!topBar) return;
-  topBar.innerHTML = HEROES.map(h=>`
-    <div class="card" style="cursor:pointer;border-left:3px solid ${h.color}" onclick="inspectHero('${h.id}')">
-      <div style="font-size:9px;color:${h.color}">HERO</div>
+  topBar.innerHTML = squadUsersDb.map(h=>`
+    <div class="card" style="cursor:pointer;border-left:3px solid ${h.color || '#22d3ee'}" onclick="inspectHero('${h.id}')">
+      <div style="font-size:9px;color:${h.color || '#22d3ee'}">Lvl ${h.level || 2}</div>
       <b style="font-size:11px;display:block">${h.name.split(' ')[0].toUpperCase()}</b>
-      <div style="font-size:9px;color:var(--muted)">${h.role}</div>
+      <div style="font-size:9px;color:var(--muted)">${h.role || 'Op'}</div>
     </div>
   `).join('');
-  inspectHero('anas');
+  inspectHero(squadUsersDb[0].id);
 }
 
 function inspectHero(id){
-  const h = HEROES.find(x=>x.id===id);
+  const h = squadUsersDb.find(x=>x.id===id);
   if(!h) return;
   document.getElementById('inspectName').textContent = h.name.toUpperCase();
-  document.getElementById('inspectRole').textContent = h.role;
-  document.getElementById('inspectAlias').textContent = h.alias;
-  document.getElementById('inspectId').textContent = h.identity;
-  document.getElementById('inspectWeapons').innerHTML = (h.weapons || [h.weapon]).map(w=>`<div class="row small"><span>${w}</span><span style="color:var(--green)">[EQUIPPED]</span></div>`).join('');
+  document.getElementById('inspectRole').textContent = h.role || 'Operator (Level ' + (h.level || 2) + ')';
+  document.getElementById('inspectAlias').textContent = h.alias || 'Standard Operative';
+  document.getElementById('inspectId').textContent = h.identity || 'Registered Operative';
+  document.getElementById('inspectWeapons').innerHTML = (h.weapons || [h.weapon || 'Standard']).map(w=>`<div class="row small"><span>${w}</span><span style="color:var(--green)">[EQUIPPED]</span></div>`).join('');
 }
 
 function playHeroAudio(){ speakText('Hero identification: ' + document.getElementById('inspectName').textContent); }
-function selectHero(id){ selectedHero=id; notify('Hero selected for combat: '+HEROES.find(x=>x.id===id).name); }
+function selectHero(id){ selectedHero=id; notify('Hero selected for combat: '+ squadUsersDb.find(x=>x.id===id).name); }
 
 function renderZordFleet(){
   const filter = document.getElementById('zordFilter').value;
@@ -985,6 +1143,165 @@ function renderZordFleet(){
 }
 
 function selectZord(id){ notify('Deployed Zord: ' + ZORDS.find(x=>x.id===id).name); }
+
+// --- ADMIN PANEL FUNCTIONS ---
+function adminCreateUser(){
+  if(currentUserLevel < 3) { notify('Access Denied: Admin Level 3 required'); return; }
+  const name = document.getElementById('newUserName').value.trim();
+  const alias = document.getElementById('newUserAlias').value.trim();
+  const level = parseInt(document.getElementById('newUserLevel').value);
+  const suit = document.getElementById('newUserSuit').value;
+  const weapon = document.getElementById('newUserWeapon').value.trim() || 'Plasma Blaster';
+
+  if(!name || !alias) { notify('Please enter operator name and hero alias'); return; }
+
+  const newId = name.toLowerCase().replace(/\s+/g, '_');
+  const colors = ['#22d3ee', '#38bdf8', '#ef4444', '#f472b6', '#34d399', '#a78bfa', '#facc15'];
+  const newHero = {
+    id: newId,
+    name,
+    alias,
+    level,
+    role: level === 3 ? 'Admin Master' : level === 2 ? 'Regular Operative' : 'Guest Operative',
+    color: colors[Math.floor(Math.random() * colors.length)],
+    identity: suit,
+    weapon,
+    weapons: [weapon, 'Standard Shield'],
+    restricted: false
+  };
+
+  squadUsersDb.push(newHero);
+  
+  // Also update the login dropdown options
+  const selectElem = document.getElementById('heroSelect');
+  const opt = document.createElement('option');
+  opt.value = newId;
+  opt.textContent = `${name} (${alias}) - Lvl ${level}`;
+  selectElem.appendChild(opt);
+
+  save();
+  renderAdminPanelUsers();
+  renderHeroes();
+  notify(`Successfully registered operator: ${name} (Level ${level})`);
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserAlias').value = '';
+  document.getElementById('newUserWeapon').value = '';
+}
+
+function adminAddZord(){
+  if(currentUserLevel < 3) { notify('Access Denied: Admin Level 3 required'); return; }
+  const name = document.getElementById('newZordName').value.trim();
+  const cat = document.getElementById('newZordCat').value;
+  const hero = document.getElementById('newZordHero').value.trim();
+  const color = document.getElementById('newZordColor').value.trim();
+  const desc = document.getElementById('newZordDesc').value.trim();
+
+  if(!name || !desc) { notify('Please provide Zord name and description'); return; }
+
+  const newZord = {
+    id: ZORDS.length + 1,
+    name,
+    cat,
+    hero,
+    color,
+    desc
+  };
+
+  customZordsList.push(newZord);
+  ZORDS.push(newZord);
+  save();
+  renderZordFleet();
+  notify(`🤖 Successfully forged and deployed ${name}!`);
+  document.getElementById('newZordName').value = '';
+  document.getElementById('newZordDesc').value = '';
+}
+
+function editUser(userId){
+  if(currentUserLevel < 3) { notify('Access Denied: Admin Level 3 required'); return; }
+  const u = squadUsersDb.find(x => x.id === userId);
+  if(!u) return;
+
+  // Security restriction: Admins cannot edit other admins
+  if(u.level === 3) {
+    notify('Security Protocol: Admins cannot edit other admins!');
+    return;
+  }
+
+  const newName = prompt("Edit Operator Name:", u.name);
+  if(newName === null) return;
+  const newAlias = prompt("Edit Hero Alias / Title:", u.alias || "");
+  if(newAlias === null) return;
+  const newLevelStr = prompt("Edit Clearance Level (1: Guest, 2: Regular, 3: Admin):", u.level || 2);
+  if(newLevelStr === null) return;
+  
+  const targetLevel = parseInt(newLevelStr) || u.level;
+  if(targetLevel === 3) {
+    notify('Security Protocol: Cannot elevate user to Admin via editing!');
+    return;
+  }
+
+  const newSuit = prompt("Edit Suit / Identity:", u.identity || "");
+  if(newSuit === null) return;
+  const newWeapon = prompt("Edit Primary Weapon / Sword:", u.weapon || "");
+  if(newWeapon === null) return;
+
+  u.name = newName.trim() || u.name;
+  u.alias = newAlias.trim() || u.alias;
+  u.level = targetLevel;
+  u.role = u.level === 3 ? 'Admin Master' : u.level === 2 ? 'Regular Operative' : 'Guest Operative';
+  u.identity = newSuit.trim() || u.identity;
+  if(newWeapon.trim()) {
+    u.weapon = newWeapon.trim();
+    if(!u.weapons) u.weapons = [];
+    if(!u.weapons.includes(u.weapon)) u.weapons.unshift(u.weapon);
+  }
+
+  save();
+  renderAdminPanelUsers();
+  renderHeroes();
+  notify(`Successfully updated operator profile: ${u.name}`);
+}
+
+function toggleUserRestriction(userId){
+  if(currentUserLevel < 3) { notify('Access Denied'); return; }
+  const u = squadUsersDb.find(x => x.id === userId);
+  if(!u) return;
+  if(u.level === 3) { notify('Security Protocol: Admins cannot restrict other admins!'); return; }
+  
+  u.restricted = !u.restricted;
+  save();
+  renderAdminPanelUsers();
+  notify(`User ${u.name} status updated: ${u.restricted ? 'RESTRICTED' : 'ACTIVE'}`);
+}
+
+function renderAdminPanelUsers(){
+  const container = document.getElementById('adminUserList');
+  if(!container) return;
+  container.innerHTML = squadUsersDb.map(u => `
+    <div class="row small" style="border-left:3px solid ${u.color || '#22d3ee'}">
+      <div>
+        <b>${u.name}</b> (${u.alias || 'Op'})<br>
+        <span class="muted">Lvl ${u.level || 2} • Sword/Weapon: ${u.weapon || 'Standard'} • ${u.restricted ? '<span style="color:var(--red)">RESTRICTED</span>' : '<span style="color:var(--green)">ACTIVE</span>'}</span>
+      </div>
+      <div style="display:flex;gap:4px">
+        ${u.level === 3 ? '<span class="sim" style="color:var(--gold)">ADMIN (LOCKED)</span>' : `<button class="primary" style="padding:4px 8px;font-size:10px" onclick="editUser('${u.id}')">EDIT</button>`}
+        ${u.level === 3 ? '' : `<button class="${u.restricted ? 'success' : 'danger'}" style="padding:4px 8px;font-size:10px" onclick="toggleUserRestriction('${u.id}')">${u.restricted ? 'UNRESTRICT' : 'RESTRICT'}</button>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function adminSendBroadcast(){
+  if(currentUserLevel < 3) { notify('Access Denied'); return; }
+  const msg = document.getElementById('broadcastMsgInput').value.trim();
+  if(!msg) { notify('Enter broadcast notification message'); return; }
+  document.getElementById('broadcastMsgInput').value = '';
+  
+  if(db) {
+    db.ref('systemBroadcast').set(msg);
+  }
+  notify('📢 Push notification broadcasted to all squad screens!');
+}
 
 function renderNexusFloors(){
   const secKey = document.getElementById('nexusSectorSelect').value;
@@ -1130,6 +1447,9 @@ function fightAction(action){
 }
 
 function triggerLockdown(){
+  if(db) {
+    db.ref('lockdownState').set({ active: true, triggeredBy: currentOperator });
+  }
   document.getElementById('lockdownOverlay').style.display = 'grid';
   notify('🚨 FACILITY LOCKDOWN ENGAGED!');
   log('ALERT: Facility Lockdown Triggered');
@@ -1138,6 +1458,9 @@ function triggerLockdown(){
 function deactivateLockdown(){
   const val = document.getElementById('overridePasscode').value.trim();
   if(val === '1000' || val.toUpperCase() === 'OVERRIDE'){
+    if(db) {
+      db.ref('lockdownState').set({ active: false, triggeredBy: currentOperator });
+    }
     document.getElementById('lockdownOverlay').style.display = 'none';
     document.getElementById('overridePasscode').value = '';
     notify('Lockdown Disengaged');
@@ -1211,9 +1534,9 @@ function getDMPairKey(user1, user2){
 function renderDMSidebar(){
   const container = document.getElementById('dmSidebarList');
   if(!container) return;
-  container.innerHTML = HEROES.filter(h => h.id !== currentOperatorId).map(h => `
+  container.innerHTML = squadUsersDb.filter(h => h.id !== currentOperatorId).map(h => `
     <button class="nav ${activeChatChannel === h.id ? 'active' : ''}" onclick="switchChat('${h.id}', this)">
-      🔒 ${h.name} <span class="muted small" style="display:block">${h.alias}</span>
+      🔒 ${h.name} <span class="muted small" style="display:block">${h.alias || h.role}</span>
     </button>
   `).join('');
 }
@@ -1225,7 +1548,7 @@ function switchChat(channel, btn){
   if(channel === 'squad'){
     document.getElementById('chatTitle').textContent = '👥 Squad General Chat [Shared Team]';
   } else {
-    const targetHero = HEROES.find(h => h.id === channel);
+    const targetHero = squadUsersDb.find(h => h.id === channel);
     document.getElementById('chatTitle').textContent = `🔒 WhatsApp Chat: ${targetHero ? targetHero.name : channel}`;
   }
   renderChatMessages();
@@ -1536,14 +1859,14 @@ function calc(){const x=prompt('Expression (e.g. 25*4):');if(!x)return;try{notif
 function uuid(){notify(crypto.randomUUID())}
 function timeTool(){notify('Timestamp: '+Math.floor(Date.now()/1000))}
 function setAccent(v){document.documentElement.style.setProperty('--cyan',v);localStorage.anasAccent=v;}
-function exportData(){const d={tasks,notes,logs,calendarEvents,squadChat,xp,schoolSubjects,projectsList,podcastData};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='anas-os-backup.json';a.click();notify('Exported')}
+function exportData(){const d={tasks,notes,logs,calendarEvents,squadChat,xp,schoolSubjects,projectsList,podcastData,squadUsersDb};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='anas-os-backup.json';a.click();notify('Exported')}
 function resetData(){if(confirm('Reset OS data?')){localStorage.clear();location.reload()}}
 
 function openHeroWindow(){
   document.getElementById('heroModal').classList.add('show');
   document.getElementById('heroWindowBody').innerHTML=`
     <div class="panelhead"><div><h1 class="title">🦸 HERO HQ WINDOW</h1></div><button onclick="closeModal()">✕</button></div>
-    <div class="grid g3">${HEROES.map(h=>`<div class="card" style="border-color:${h.color}55"><b style="color:${h.color}">${h.name}</b><div class="small muted">${h.alias}</div><button onclick="selectHero('${h.id}');show('fight');closeModal()">FIGHT HUD</button></div>`).join('')}</div>
+    <div class="grid g3">${squadUsersDb.map(h=>`<div class="card" style="border-color:${h.color || '#22d3ee'}55"><b style="color:${h.color || '#22d3ee'}">${h.name}</b><div class="small muted">${h.alias || h.role}</div><button onclick="selectHero('${h.id}');show('fight');closeModal()">FIGHT HUD</button></div>`).join('')}</div>
   `;
 }
 function closeModal(){document.getElementById('heroModal').classList.remove('show')}
@@ -1569,7 +1892,7 @@ function initApp(){
   renderDMSidebar();
   switchChat('squad');
 
-  renderHeroes();renderZordFleet();renderSuits();renderTasks();renderNotes();renderMissions();renderPlugins();renderCalendarEvents();renderSchool();renderProjects();renderPodcast();renderLogs();renderActivity();
+  renderHeroes();renderZordFleet();renderSuits();renderTasks();renderNotes();renderMissions();renderPlugins();renderCalendarEvents();renderSchool();renderProjects();renderPodcast();renderLogs();renderActivity();renderAdminPanelUsers();
   document.getElementById('xp').textContent=xp; document.getElementById('tbXp').textContent=xp;
   if(localStorage.anasAccent)setAccent(localStorage.anasAccent);
 }
