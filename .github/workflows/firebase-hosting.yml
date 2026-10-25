@@ -1,4 +1,4 @@
-name: Deploy ANAS OS to Firebase Hosting
+name: Deploy to Firebase Hosting
 
 on:
   push:
@@ -6,24 +6,21 @@ on:
       - main
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Authenticate and Deploy
-        run: |
-          cat << 'EOF' > $HOME/sa.json
-          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          EOF
-          export GOOGLE_APPLICATION_CREDENTIALS=$HOME/sa.json
-          npx firebase-tools deploy --only hosting --project anas-os-org --non-interactive
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: anas-os-org
+          channelId: live
