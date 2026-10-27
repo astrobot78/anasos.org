@@ -8,6 +8,8 @@
 <!-- Firebase Realtime Database SDKs for Live Squad Sync -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<!-- QRCode Library for Passports -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--bg:#030712;--panel:#07111fff;--panel2:#0b1728;--line:#15304a;--cyan:#22d3ee;--blue:#38bdf8;--purple:#a78bfa;--green:#34d399;--red:#fb4b5f;--pink:#f472b6;--gold:#facc15;--text:#e5f3ff;--muted:#7f9ab2;--shadow:0 12px 40px #0008}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:radial-gradient(circle at 70% 10%,#0c2740 0,#030712 42%,#010409 100%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
@@ -117,10 +119,11 @@ input,select,textarea{width:100%;background:#030a12;color:var(--text);border:1px
   <div class="loginbox">
     <h1>ANAS OS</h1>
     <p>MULTIVERSAL HERO COMMAND GATEWAY</p>
+    <div id="deviceLockNotice" class="small muted" style="color:var(--cyan);margin-bottom:8px">Device ID Lock: Enforced on first login</div>
     <label class="small muted" style="display:block;text-align:left;margin-bottom:4px">SELECT OPERATOR:</label>
     <select id="heroSelect" style="margin-bottom:12px" onchange="fillHeroCredentials()">
-      <option value="anas">Anas Alroz (Crimson Wing)</option>
-      <option value="mohamad">Mohamad Albadri (Blue Vortex)</option>
+      <option value="anas">Anas Alroz (Crimson Wing) [Admin Level 3]</option>
+      <option value="mohamad">Mohamad Albadri (Blue Vortex) [Admin Level 3]</option>
       <option value="emad">Emad Albadri (Flame Phantom)</option>
       <option value="leen">Leen (Striking Pink)</option>
       <option value="abdulla">Abdulla (Smashing One)</option>
@@ -129,7 +132,7 @@ input,select,textarea{width:100%;background:#030a12;color:var(--text);border:1px
       <option value="hulk">Hulk (Gamma Titan)</option>
     </select>
     <input id="usernameInput" placeholder="Operator Name" value="Anas Alroz" style="margin-bottom:12px">
-    <input id="passInput" type="password" placeholder="Security Passcode" value="CrimsonWing2026!" style="margin-bottom:16px">
+    <input id="passInput" type="password" placeholder="Security Passcode / One-Time Passport Code" value="CrimsonWing2026!" style="margin-bottom:16px">
     <button class="primary bigbtn" style="width:100%;margin-bottom:8px" onclick="handleLogin()">AUTHENTICATE & BOOT</button>
   </div>
 </div>
@@ -524,9 +527,32 @@ Type 'help' to inspect the comprehensive command directory.<br>
 <!-- ADMIN COMMAND PANEL -->
 <section id="admin" class="view">
 <div class="panelhead">
-  <div><h1 class="title">👑 ADMIN COMMAND CENTER</h1><div class="sub">Level 3 Clearance // User & Fleet Control Matrix</div></div>
+  <div><h1 class="title">👑 ADMIN COMMAND CENTER</h1><div class="sub">Level 3 Clearance // User, Fleet & Guest Passport Matrix</div></div>
   <span class="sim" style="color:var(--gold)">ADMIN SECURE</span>
 </div>
+
+<!-- ONE-TIME GUEST PASSPORTS (ADMIN ISSUED) -->
+<div class="card" style="margin-bottom:14px">
+  <div class="panelhead"><b>🔑 ONE-TIME GUEST PASSPORTS & RESTRICTED ZONE ACCESS</b></div>
+  <p class="small muted" style="margin-bottom:12px">Issue one-time guest access for restricted floors, living room, experiment zones, or account overrides. Generates PIN, QR code, and Wallet entry.</p>
+  <div class="passport-controls" style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:10px;margin-bottom:15px;">
+    <input type="text" id="guestNameInput" placeholder="Guest name (e.g. Emad, Leen, Maria)" />
+    <select id="guestZoneSelect">
+      <option value="Living Room">Living Room</option>
+      <option value="Experiment Zone">Experiment Zone</option>
+      <option value="Restricted Floor 2">Restricted Floor 2</option>
+      <option value="Vault Area">Vault Area</option>
+    </select>
+    <select id="guestDurationSelect">
+      <option value="1">1 hour</option>
+      <option value="4" selected>4 hours</option>
+      <option value="24">24 hours</option>
+    </select>
+    <button class="primary" onclick="issueGuestPassport()">+ Issue passport</button>
+  </div>
+  <div id="passportListContainer" class="list" style="max-height:220px;overflow-y:auto"></div>
+</div>
+
 <div class="grid g2" style="margin-bottom:14px">
   <div class="card">
     <div class="panelhead"><b>➕ CREATE / REGISTER NEW USER</b></div>
@@ -584,6 +610,16 @@ Type 'help' to inspect the comprehensive command directory.<br>
 <!-- HQ CONTROL -->
 <section id="hq" class="view">
 <div class="panelhead"><div><h1 class="title">HQ CONTROL // MULTIVERSAL POWER & DIMENSIONAL DEFENSE</h1><div class="sub">SECTOR ZENITH PRIME</div></div><span id="hqState" class="success">NORMAL</span></div>
+
+<!-- HQ LIVE CAMERA FEED -->
+<div class="card" style="margin-bottom:14px">
+  <div class="panelhead"><b>📹 HQ CONTROL LIVE CAMERA FEED (ACTUAL STREAM)</b><span class="success">LIVE FOOTAGE</span></div>
+  <div class="camera-feed-container" style="position:relative;width:100%;height:340px;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line);">
+    <div class="live-badge" style="position:absolute;top:15px;left:15px;background:rgba(239,68,68,0.9);color:white;padding:6px 12px;border-radius:6px;font-weight:bold;font-size:0.8rem;display:flex;align-items:center;gap:6px;z-index:10;"><div class="live-dot" style="width:8px;height:8px;background:white;border-radius:50%;"></div> LIVE FOOTAGE</div>
+    <video id="hqLiveCamera" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+  </div>
+</div>
+
 <div class="grid g4" style="margin-bottom:12px">
   <div class="card"><div class="label">HARD-LIGHT SHIELD</div><div class="stat" style="color:var(--pink)">100%</div><button style="width:100%;margin-top:8px" onclick="notify('Shield Boosted')">BOOST SHIELD</button></div>
   <div class="card"><div class="label">RIFT STABILITY</div><div class="stat" style="color:var(--cyan)">OPTIMAL</div><button style="width:100%;margin-top:8px" onclick="notify('Rifts Calibrated')">CALIBRATE</button></div>
@@ -816,6 +852,9 @@ Type 'help' to inspect the comprehensive command directory.<br>
 <div id="toast" class="toast"></div>
 <div id="heroModal" class="modal"><div class="modalbox"><div class="modalhead"><b>🦸 ANAS OS — HERO HQ WINDOW</b><button onclick="closeModal()">✕</button></div><div class="modalbody" id="heroWindowBody"></div></div></div>
 
+<!-- PRINTABLE PASSPORT MODAL -->
+<div id="printPassportModal" class="modal"><div class="modalbox" style="width:min(480px,92vw);text-align:center;background:#fff;color:#000"><div class="modalhead" style="background:#f1f5f9;color:#000"><b>ANAS OS ACCESS PASSPORT</b><button onclick="closePrintModal()" style="background:transparent;color:#000;border:0">✕</button></div><div class="modalbody"><h2 id="printPassGuest" style="margin:0 0 8px">Guest</h2><p id="printPassZone" style="font-weight:bold;margin:0 0 12px">Zone</p><p id="printPassPin" style="font-family:monospace;font-size:24px;margin:0 0 16px;color:#2563eb">000000</p><div id="printPassQr" style="display:inline-block;margin-bottom:16px"></div><br><button class="primary" onclick="window.print()" style="background:#2563eb;color:#fff">🖨️ PRINT PASSPORT CARD</button></div></div></div>
+
 <script>
 // --- FIREBASE CLOUD DATABASE CONFIGURATION ---
 const firebaseConfig = {
@@ -902,6 +941,7 @@ const HEROES = [
 
 let squadUsersDb = JSON.parse(localStorage.anasSquadUsers || JSON.stringify(HEROES));
 let customZordsList = JSON.parse(localStorage.anasCustomZords || '[]');
+let issuedPassports = JSON.parse(localStorage.getItem("anas_os_passports") || "[]");
 
 const ZORDS = [
   { id: 1, name: 'Crimson Phoenix Zord', cat: 'core', hero: 'Anas Alroz', color: '#fb4b5f', desc: 'Zenith mobility and cosmic flame wings.' },
@@ -1000,6 +1040,7 @@ function save(){
   localStorage.anasPodcast=JSON.stringify(podcastData);
   localStorage.anasSquadUsers=JSON.stringify(squadUsersDb);
   localStorage.anasCustomZords=JSON.stringify(customZordsList);
+  localStorage.setItem("anas_os_passports", JSON.stringify(issuedPassports));
   localStorage.anasXP=xp;
 
   if(db) {
@@ -1038,6 +1079,35 @@ function fillHeroCredentials(){
   currentUserLevel = userObj.level || (sel === 'anas' || sel === 'mohamad' ? 3 : 2);
 }
 
+// --- DEVICE ID LOCK & ONE-TIME PASSPORT VERIFICATION ---
+function checkDeviceUserLock(selectedUserId){
+  const userObj = squadUsersDb.find(u => u.id === selectedUserId);
+  // Level 3 Admins (Anas, Mohamad) bypass device lock restrictions completely
+  if(userObj && userObj.level === 3) return true;
+
+  let assignedUser = localStorage.getItem("anas_os_assigned_user");
+  if(!assignedUser){
+    localStorage.setItem("anas_os_assigned_user", selectedUserId);
+    return true;
+  }
+  if(assignedUser !== selectedUserId){
+    // Check if a valid one-time guest passport PIN is entered in the passcode box
+    const passInputVal = document.getElementById('passInput').value.trim();
+    const validPassIndex = issuedPassports.findIndex(p => p.pin === passInputVal && !p.used && Date.now() <= p.expiresAt);
+    if(validPassIndex !== -1){
+      issuedPassports[validPassIndex].used = true;
+      save();
+      renderPassportList();
+      notify(`One-Time Guest Passport accepted! Access granted.`);
+      return true;
+    } else {
+      alert(`DEVICE LOCKED: This device is permanently assigned to User ID "${assignedUser}". To access other operator accounts or restricted areas, an Admin-issued One-Time Guest Passport PIN must be entered in the security passcode box.`);
+      return false;
+    }
+  }
+  return true;
+}
+
 function handleLogin(){
   playSfx('success');
   const sel = document.getElementById('heroSelect').value;
@@ -1045,6 +1115,10 @@ function handleLogin(){
   
   if(userObj.restricted) {
     alert('ACCESS DENIED: This user account has been restricted by an Administrator.');
+    return;
+  }
+
+  if(!checkDeviceUserLock(sel)) {
     return;
   }
 
@@ -1144,7 +1218,77 @@ function renderZordFleet(){
 
 function selectZord(id){ notify('Deployed Zord: ' + ZORDS.find(x=>x.id===id).name); }
 
-// --- ADMIN PANEL FUNCTIONS ---
+// --- ADMIN & GUEST PASSPORT FUNCTIONS ---
+function issueGuestPassport(){
+  if(currentUserLevel < 3) { notify('Access Denied: Admin Level 3 required'); return; }
+  const name = document.getElementById('guestNameInput').value.trim() || 'Guest';
+  const zone = document.getElementById('guestZoneSelect').value;
+  const hours = parseInt(document.getElementById('guestDurationSelect').value);
+  const pinCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const newPass = {
+    id: Date.now(),
+    name,
+    zone,
+    pin: pinCode,
+    expiresAt: Date.now() + (hours * 3600 * 1000),
+    used: false
+  };
+
+  issuedPassports.push(newPass);
+  save();
+  renderPassportList();
+  showPrintablePassport(newPass);
+  notify(`🔑 One-time passport issued for ${name} (${zone})`);
+  document.getElementById('guestNameInput').value = '';
+}
+
+function renderPassportList(){
+  const container = document.getElementById('passportListContainer');
+  if(!container) return;
+  if(issuedPassports.length === 0){
+    container.innerHTML = '<div class="small muted">No active guest passports issued.</div>';
+    return;
+  }
+  container.innerHTML = issuedPassports.map(p => {
+    const isExpired = Date.now() > p.expiresAt || p.used;
+    return `
+      <div class="row small">
+        <div>
+          <b>${p.name}</b> — <span style="color:var(--cyan)">${p.zone}</span><br>
+          PIN CODE: <code style="color:var(--gold);font-weight:bold">${p.pin}</code>
+        </div>
+        <div>
+          <span style="color:${isExpired ? 'var(--red)' : 'var(--green)'};font-weight:bold">${isExpired ? 'EXPIRED/USED' : 'ACTIVE'}</span>
+          <button class="primary" style="padding:2px 6px;font-size:9px;margin-left:6px" onclick="showPrintablePassport(${p.id})">VIEW QR</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showPrintablePassport(passOrId){
+  const pass = typeof passOrId === 'object' ? passOrId : issuedPassports.find(p => p.id === passOrId);
+  if(!pass) return;
+  document.getElementById('printPassGuest').textContent = `PASS: ${pass.name}`;
+  document.getElementById('printPassZone').textContent = `ACCESS ZONE: ${pass.zone}`;
+  document.getElementById('printPassPin').textContent = `PIN: ${pass.pin}`;
+  
+  const qrDiv = document.getElementById('printPassQr');
+  qrDiv.innerHTML = '';
+  new QRCode(qrDiv, {
+    text: `ANAS-OS-PASS:${pass.pin}:${pass.zone}`,
+    width: 128,
+    height: 128
+  });
+
+  document.getElementById('printPassportModal').classList.add('show');
+}
+
+function closePrintModal(){
+  document.getElementById('printPassportModal').classList.remove('show');
+}
+
 function adminCreateUser(){
   if(currentUserLevel < 3) { notify('Access Denied: Admin Level 3 required'); return; }
   const name = document.getElementById('newUserName').value.trim();
@@ -1172,7 +1316,6 @@ function adminCreateUser(){
 
   squadUsersDb.push(newHero);
   
-  // Also update the login dropdown options
   const selectElem = document.getElementById('heroSelect');
   const opt = document.createElement('option');
   opt.value = newId;
@@ -1182,6 +1325,7 @@ function adminCreateUser(){
   save();
   renderAdminPanelUsers();
   renderHeroes();
+  renderHeroInspectorBar();
   notify(`Successfully registered operator: ${name} (Level ${level})`);
   document.getElementById('newUserName').value = '';
   document.getElementById('newUserAlias').value = '';
@@ -1221,7 +1365,6 @@ function editUser(userId){
   const u = squadUsersDb.find(x => x.id === userId);
   if(!u) return;
 
-  // Security restriction: Admins cannot edit other admins
   if(u.level === 3) {
     notify('Security Protocol: Admins cannot edit other admins!');
     return;
@@ -1259,6 +1402,7 @@ function editUser(userId){
   save();
   renderAdminPanelUsers();
   renderHeroes();
+  renderHeroInspectorBar();
   notify(`Successfully updated operator profile: ${u.name}`);
 }
 
@@ -1281,7 +1425,7 @@ function renderAdminPanelUsers(){
     <div class="row small" style="border-left:3px solid ${u.color || '#22d3ee'}">
       <div>
         <b>${u.name}</b> (${u.alias || 'Op'})<br>
-        <span class="muted">Lvl ${u.level || 2} • Sword/Weapon: ${u.weapon || 'Standard'} • ${u.restricted ? '<span style="color:var(--red)">RESTRICTED</span>' : '<span style="color:var(--green)">ACTIVE</span>'}</span>
+        <span class="muted">Lvl ${u.level || 2} • Weapon: ${u.weapon || 'Standard'} • ${u.restricted ? '<span style="color:var(--red)">RESTRICTED</span>' : '<span style="color:var(--green)">ACTIVE</span>'}</span>
       </div>
       <div style="display:flex;gap:4px">
         ${u.level === 3 ? '<span class="sim" style="color:var(--gold)">ADMIN (LOCKED)</span>' : `<button class="primary" style="padding:4px 8px;font-size:10px" onclick="editUser('${u.id}')">EDIT</button>`}
@@ -1343,6 +1487,21 @@ function takeElevatorToFloorNum(){
   const val = parseInt(document.getElementById('elevatorTargetInput').value);
   if(isNaN(val) || val < 1 || val > 100){ notify('Please enter a valid floor between 1 and 100'); return; }
   takeElevatorTo(val);
+}
+
+// --- HQ LIVE CAMERA STREAM ---
+async function startHqCameraFeed() {
+  const videoElem = document.getElementById("hqLiveCamera");
+  if(!videoElem) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    videoElem.srcObject = stream;
+  } catch (err) {
+    console.warn("Webcam access restricted, displaying active security loop.");
+    videoElem.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    videoElem.loop = true;
+    videoElem.play();
+  }
 }
 
 function renderSuits(){document.getElementById('suitGrid').innerHTML=SUITS.map(s=>`<div class="card suit" style="border-color:${s.color}55"><div class="armor" style="color:${s.color}">${s.icon}</div><b>${s.name}</b><div class="small muted">${s.hero} • ${s.desc}</div><br><button onclick="selectSuit('${s.id}')">SELECT</button></div>`).join('')}
@@ -1883,6 +2042,7 @@ function initApp(){
   previewCode();
   initCreatorCanvas();
   renderNexusFloors();
+  startHqCameraFeed();
 
   setInterval(()=>{
     document.getElementById('clock').textContent = new Date().toLocaleString();
@@ -1892,12 +2052,17 @@ function initApp(){
   renderDMSidebar();
   switchChat('squad');
 
-  renderHeroes();renderZordFleet();renderSuits();renderTasks();renderNotes();renderMissions();renderPlugins();renderCalendarEvents();renderSchool();renderProjects();renderPodcast();renderLogs();renderActivity();renderAdminPanelUsers();
+  renderHeroes();renderZordFleet();renderSuits();renderTasks();renderNotes();renderMissions();renderPlugins();renderCalendarEvents();renderSchool();renderProjects();renderPodcast();renderLogs();renderActivity();renderAdminPanelUsers();renderPassportList();
   document.getElementById('xp').textContent=xp; document.getElementById('tbXp').textContent=xp;
   if(localStorage.anasAccent)setAccent(localStorage.anasAccent);
+
+  const assigned = localStorage.getItem("anas_os_assigned_user");
+  if(assigned){
+    document.getElementById('deviceLockNotice').textContent = `Device ID Lock active: Assigned to "${assigned}"`;
+  }
 }
 
 window.addEventListener('DOMContentLoaded',()=>fillHeroCredentials());
 </script>
 </body>
-</html> 
+</html>
