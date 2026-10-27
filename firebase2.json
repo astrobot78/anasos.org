@@ -1,0 +1,8 @@
+{
+  "hosting": {
+    "site": "anas-os-org-hqam",
+
+    "public": "public",
+    ...
+  }
+}
